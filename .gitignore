@@ -1,0 +1,4 @@
+*.swp
+build/
+install/
+log/
