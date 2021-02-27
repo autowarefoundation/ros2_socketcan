@@ -14,6 +14,8 @@
 
 #include <ros2_socketcan/socket_can_receiver_node.hpp>
 
+#include <algorithm>
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -29,6 +31,37 @@ SocketCanReceiverNode::SocketCanReceiverNode(const rclcpp::NodeOptions & options
   m_receiver = std::make_unique<SocketCanReceiver>(
     declare_parameter(
       "interface_name").get<std::string>());
+  m_read_interval = std::chrono::nanoseconds(
+    declare_parameter("polling_interval_ns").get<int64_t>());
+
+  m_can_pub = create_publisher<can_msgs::msg::Frame>("can_received", rclcpp::QoS{50});
+
+  m_receiver_thread = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
+}
+
+SocketCanReceiverNode::~SocketCanReceiverNode()
+{
+  if (m_receiver_thread->joinable()) {
+    m_receiver_thread->join();
+  }
+}
+
+void SocketCanReceiverNode::receive()
+{
+  CanId can_id;
+
+  while (rclcpp::ok()) {
+    can_id = m_receiver->receive(&m_data_buffer[0], m_read_interval);
+    can_msgs::msg::Frame can_frame;
+    can_frame.id = can_id.identifier();
+    can_frame.is_rtr = (can_id.frame_type() == FrameType::REMOTE);
+    can_frame.is_extended = can_id.is_extended();
+    can_frame.is_error = (can_id.frame_type() == FrameType::ERROR);
+    can_frame.dlc = can_id.length();
+    std::copy(m_data_buffer.begin(), m_data_buffer.end(), can_frame.data.begin());
+
+    m_can_pub->publish(can_frame);
+  }
 }
 
 }  // namespace socketcan

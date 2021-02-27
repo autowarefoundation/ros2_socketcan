@@ -19,9 +19,12 @@
 #include <ros2_socketcan/visibility_control.hpp>
 
 #include <rclcpp/rclcpp.hpp>
+#include <can_msgs/msg/frame.hpp>
 
 #include <array>
+#include <chrono>
 #include <memory>
+#include <thread>
 
 namespace drivers
 {
@@ -31,10 +34,16 @@ class SOCKETCAN_PUBLIC SocketCanReceiverNode : public rclcpp::Node
 {
 public:
   explicit SocketCanReceiverNode(const rclcpp::NodeOptions & options);
+  ~SocketCanReceiverNode();
 
 private:
+  void receive();
+
   std::array<uint8_t, 8> m_data_buffer;
   std::unique_ptr<SocketCanReceiver> m_receiver;
+  std::chrono::nanoseconds m_read_interval;
+  std::unique_ptr<std::thread> m_receiver_thread;
+  rclcpp::Publisher<can_msgs::msg::Frame>::SharedPtr m_can_pub;
 };
 }  // namespace socketcan
 }  // namespace drivers
