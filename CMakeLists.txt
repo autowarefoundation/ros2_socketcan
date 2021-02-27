@@ -20,6 +20,15 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/socket_can_receiver.cpp
   src/socket_can_sender.cpp)
 
+ament_auto_add_library(${PROJECT_NAME}_nodes SHARED
+  src/socket_can_receiver_node.cpp
+)
+
+rclcpp_components_register_node(${PROJECT_NAME}_nodes
+  PLUGIN drivers::socketcan::SocketCanReceiverNode
+  EXECUTABLE ${PROJECT_NAME}_receiver_node
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
