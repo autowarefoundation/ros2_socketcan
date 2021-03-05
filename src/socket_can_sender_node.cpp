@@ -107,7 +107,8 @@ void SocketCanSenderNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
     try {
       sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
     } catch (const std::exception & ex) {
-      RCLCPP_WARN(this->get_logger(), "Error sending CAN message: %s - %s",
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+        "Error sending CAN message: %s - %s",
         interface_.c_str(), ex.what());
       return;
     }
