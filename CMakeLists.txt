@@ -33,6 +33,19 @@ rclcpp_components_register_node(socket_can_receiver_node
   EXECUTABLE socket_can_receiver_node_exe
 )
 
+ament_auto_add_library(socket_can_sender_node SHARED
+  src/socket_can_sender_node.cpp
+)
+
+target_link_libraries(socket_can_sender_node
+  ${PROJECT_NAME}
+)
+
+rclcpp_components_register_node(socket_can_sender_node
+  PLUGIN "drivers::socketcan::SocketCanSenderNode"
+  EXECUTABLE socket_can_sender_node_exe
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()

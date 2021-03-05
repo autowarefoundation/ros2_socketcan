@@ -94,8 +94,6 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
 LNI::CallbackReturn SocketCanReceiverNode::on_shutdown(const lc::State & state)
 {
   (void)state;
-  frames_pub_.reset();
-  timer_.reset();
   RCLCPP_DEBUG(this->get_logger(), "Receiver shutting down.");
   return LNI::CallbackReturn::SUCCESS;
 }
