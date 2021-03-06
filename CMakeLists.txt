@@ -59,4 +59,6 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
 endif()
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE
+  launch
+)
