@@ -1,0 +1,17 @@
+<launch>
+
+  <arg name="interface" default="can0" />
+  <arg name="receiver_interval_sec" default="0.01" />
+  <arg name="sender_timeout_sec" default="0.01" />
+
+  <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_receiver.launch.py">
+    <arg name="interface" value="$(var interface)" />
+    <arg name="interval_sec" value="$(var receiver_interval_sec)" />
+  </include>
+
+  <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_sender.launch.py">
+    <arg name="interface" value="$(var interface)" />
+    <arg name="timeout_sec" value="$(var sender_timeout_sec)" />
+  </include>
+
+</launch>

@@ -20,6 +20,32 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/socket_can_receiver.cpp
   src/socket_can_sender.cpp)
 
+ament_auto_add_library(socket_can_receiver_node SHARED
+  src/socket_can_receiver_node.cpp
+)
+
+target_link_libraries(socket_can_receiver_node
+  ${PROJECT_NAME}
+)
+
+rclcpp_components_register_node(socket_can_receiver_node
+  PLUGIN "drivers::socketcan::SocketCanReceiverNode"
+  EXECUTABLE socket_can_receiver_node_exe
+)
+
+ament_auto_add_library(socket_can_sender_node SHARED
+  src/socket_can_sender_node.cpp
+)
+
+target_link_libraries(socket_can_sender_node
+  ${PROJECT_NAME}
+)
+
+rclcpp_components_register_node(socket_can_sender_node
+  PLUGIN "drivers::socketcan::SocketCanSenderNode"
+  EXECUTABLE socket_can_sender_node_exe
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
@@ -33,4 +59,6 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
 endif()
 
-ament_auto_package()
+ament_auto_package(INSTALL_TO_SHARE
+  launch
+)
