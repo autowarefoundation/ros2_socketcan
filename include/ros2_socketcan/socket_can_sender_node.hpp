@@ -40,7 +40,7 @@ namespace socketcan
 /// \brief SocketCanSenderNode class which can pass messages
 /// from CAN hardware or virtual channels
 class SOCKETCAN_PUBLIC SocketCanSenderNode final
-: public lc::LifecycleNode
+  : public lc::LifecycleNode
 {
 public:
   /// \brief Default constructor

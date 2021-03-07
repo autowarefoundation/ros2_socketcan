@@ -45,11 +45,11 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 {
   (void)state;
 
-  try
-  {
+  try {
     receiver_ = std::make_unique<SocketCanReceiver>(interface_);
   } catch (const std::exception & ex) {
-    RCLCPP_ERROR(this->get_logger(), "Error opening CAN receiver: %s - %s",
+    RCLCPP_ERROR(
+      this->get_logger(), "Error opening CAN receiver: %s - %s",
       interface_.c_str(), ex.what());
     return LNI::CallbackReturn::FAILURE;
   }
@@ -106,7 +106,8 @@ void SocketCanReceiverNode::receive()
   try {
     receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
   } catch (const std::exception & ex) {
-    RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+    RCLCPP_WARN_THROTTLE(
+      this->get_logger(), *this->get_clock(), 1000,
       "Error receiving CAN message: %s - %s",
       interface_.c_str(), ex.what());
     return;

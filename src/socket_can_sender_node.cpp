@@ -45,11 +45,11 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
 {
   (void)state;
 
-  try
-  {
+  try {
     sender_ = std::make_unique<SocketCanSender>(interface_);
   } catch (const std::exception & ex) {
-    RCLCPP_ERROR(this->get_logger(), "Error opening CAN sender: %s - %s",
+    RCLCPP_ERROR(
+      this->get_logger(), "Error opening CAN sender: %s - %s",
       interface_.c_str(), ex.what());
     return LNI::CallbackReturn::FAILURE;
   }
@@ -102,12 +102,13 @@ void SocketCanSenderNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
       type = FrameType::DATA;
     }
 
-    CanId send_id = msg->is_extended ? CanId(msg->id, type, ExtendedFrame)
-                                     : CanId(msg->id, type, StandardFrame);
+    CanId send_id = msg->is_extended ? CanId(msg->id, type, ExtendedFrame) :
+      CanId(msg->id, type, StandardFrame);
     try {
       sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
     } catch (const std::exception & ex) {
-      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
         "Error sending CAN message: %s - %s",
         interface_.c_str(), ex.what());
       return;
