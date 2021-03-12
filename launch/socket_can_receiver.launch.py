@@ -19,7 +19,7 @@ from launch import LaunchDescription
 from launch.events import matches_action
 from launch.actions import DeclareLaunchArgument, EmitEvent
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, TextSubstitution
 
 from launch_ros.actions import LifecycleNode
 from launch_ros.events.lifecycle import ChangeState
@@ -31,7 +31,7 @@ def generate_launch_description():
     socket_can_receiver_node = LifecycleNode(package='ros2_socketcan',
                                              executable='socket_can_receiver_node_exe',
                                              name='socket_can_receiver',
-                                             namespace=LaunchConfiguration('namespace'),
+                                             namespace=TextSubstitution(text=""),
                                              parameters=[{
                                                  'interface': LaunchConfiguration('interface'),
                                                  'interval_sec':
@@ -56,7 +56,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        DeclareLaunchArgument('namespace', default_value=''),
         DeclareLaunchArgument('interface', default_value='can0'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
