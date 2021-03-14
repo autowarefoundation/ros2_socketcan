@@ -16,14 +16,12 @@
 
 
 from launch import LaunchDescription
-from launch.events import matches_action
 from launch.actions import DeclareLaunchArgument, EmitEvent
 from launch.conditions import IfCondition
+from launch.events import matches_action
 from launch.substitutions import LaunchConfiguration, TextSubstitution
-
 from launch_ros.actions import LifecycleNode
 from launch_ros.events.lifecycle import ChangeState
-
 import lifecycle_msgs.msg
 
 
@@ -31,7 +29,7 @@ def generate_launch_description():
     socket_can_sender_node = LifecycleNode(package='ros2_socketcan',
                                            executable='socket_can_sender_node_exe',
                                            name='socket_can_sender',
-                                           namespace=TextSubstitution(text=""),
+                                           namespace=TextSubstitution(text=''),
                                            parameters=[{
                                                'interface': LaunchConfiguration('interface'),
                                                'timeout_sec':
