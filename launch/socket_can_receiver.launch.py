@@ -18,11 +18,10 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, EmitEvent
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
-
+from launch.events import matches_action
+from launch.substitutions import LaunchConfiguration, TextSubstitution
 from launch_ros.actions import LifecycleNode
-from launch_ros.events.lifecycle import ChangeState, matches_node_name
-
+from launch_ros.events.lifecycle import ChangeState
 import lifecycle_msgs.msg
 
 
@@ -30,6 +29,7 @@ def generate_launch_description():
     socket_can_receiver_node = LifecycleNode(package='ros2_socketcan',
                                              executable='socket_can_receiver_node_exe',
                                              name='socket_can_receiver',
+                                             namespace=TextSubstitution(text=''),
                                              parameters=[{
                                                  'interface': LaunchConfiguration('interface'),
                                                  'interval_sec':
@@ -39,7 +39,7 @@ def generate_launch_description():
 
     socket_can_receiver_configure_trans_event = EmitEvent(
         event=ChangeState(
-            lifecycle_node_matcher=matches_node_name('/socket_can_receiver'),
+            lifecycle_node_matcher=matches_action(socket_can_receiver_node),
             transition_id=lifecycle_msgs.msg.Transition.TRANSITION_CONFIGURE,
         ),
         condition=IfCondition(LaunchConfiguration('auto_configure')),
@@ -47,7 +47,7 @@ def generate_launch_description():
 
     socket_can_receiver_activate_trans_event = EmitEvent(
         event=ChangeState(
-            lifecycle_node_matcher=matches_node_name('/socket_can_receiver'),
+            lifecycle_node_matcher=matches_action(socket_can_receiver_node),
             transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE,
         ),
         condition=IfCondition(LaunchConfiguration('auto_activate')),
