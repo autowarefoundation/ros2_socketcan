@@ -55,7 +55,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   }
 
   RCLCPP_DEBUG(this->get_logger(), "Receiver successfully configured.");
-  frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("can_tx", 500);
+  frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("from_can_bus", 500);
 
   auto on_timer = std::bind(&SocketCanReceiverNode::receive, this);
   timer_ = std::make_shared<rclcpp::GenericTimer<decltype(on_timer)>>(

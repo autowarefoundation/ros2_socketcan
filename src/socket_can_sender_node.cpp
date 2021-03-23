@@ -56,7 +56,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
 
   RCLCPP_DEBUG(this->get_logger(), "Sender successfully configured.");
   frames_sub_ = this->create_subscription<can_msgs::msg::Frame>(
-    "can_rx", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
+    "to_can_bus", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
 
   return LNI::CallbackReturn::SUCCESS;
 }
