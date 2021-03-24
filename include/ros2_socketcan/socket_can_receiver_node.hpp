@@ -25,8 +25,10 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <rosidl_runtime_cpp/message_initialization.hpp>
 #include <can_msgs/msg/frame.hpp>
+#include <lifecycle_msgs/msg/state.hpp>
 
 #include <memory>
+#include <thread>
 #include <string>
 
 namespace lc = rclcpp_lifecycle;
@@ -72,7 +74,7 @@ private:
   std::string interface_;
   std::shared_ptr<lc::LifecyclePublisher<can_msgs::msg::Frame>> frames_pub_;
   std::unique_ptr<SocketCanReceiver> receiver_;
-  rclcpp::TimerBase::SharedPtr timer_;
+  std::unique_ptr<std::thread> receiver_thread_;
   std::chrono::nanoseconds interval_ns_;
 };
 }  // namespace socketcan

@@ -23,6 +23,7 @@
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
+using lifecycle_msgs::msg::State;
 using namespace std::chrono_literals;
 
 namespace drivers
@@ -57,11 +58,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   RCLCPP_DEBUG(this->get_logger(), "Receiver successfully configured.");
   frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("from_can_bus", 500);
 
-  auto on_timer = std::bind(&SocketCanReceiverNode::receive, this);
-  timer_ = std::make_shared<rclcpp::GenericTimer<decltype(on_timer)>>(
-    this->get_clock(), interval_ns_, std::move(on_timer),
-    this->get_node_base_interface()->get_context());
-  this->get_node_timers_interface()->add_timer(timer_, nullptr);
+  receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
 
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -86,7 +83,9 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
 {
   (void)state;
   frames_pub_.reset();
-  timer_.reset();
+  if (receiver_thread_->joinable()) {
+    receiver_thread_->join();
+  }
   RCLCPP_DEBUG(this->get_logger(), "Receiver cleaned up.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -103,22 +102,30 @@ void SocketCanReceiverNode::receive()
   CanId receive_id{};
   can_msgs::msg::Frame frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
   frame_msg.header.frame_id = "can";
-  try {
-    receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
-  } catch (const std::exception & ex) {
-    RCLCPP_WARN_THROTTLE(
-      this->get_logger(), *this->get_clock(), 1000,
-      "Error receiving CAN message: %s - %s",
-      interface_.c_str(), ex.what());
-    return;
+
+  while (rclcpp::ok()) {
+    if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
+      std::this_thread::sleep_for(100ms);
+      continue;
+    }
+
+    try {
+      receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
+    } catch (const std::exception & ex) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "Error receiving CAN message: %s - %s",
+        interface_.c_str(), ex.what());
+      continue;
+    }
+    frame_msg.header.stamp = this->now();
+    frame_msg.id = receive_id.identifier();
+    frame_msg.is_rtr = (receive_id.frame_type() == FrameType::REMOTE);
+    frame_msg.is_extended = receive_id.is_extended();
+    frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
+    frame_msg.dlc = receive_id.length();
+    frames_pub_->publish(std::move(frame_msg));
   }
-  frame_msg.header.stamp = this->now();
-  frame_msg.id = receive_id.identifier();
-  frame_msg.is_rtr = (receive_id.frame_type() == FrameType::REMOTE);
-  frame_msg.is_extended = receive_id.is_extended();
-  frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
-  frame_msg.dlc = receive_id.length();
-  frames_pub_->publish(std::move(frame_msg));
 }
 
 }  // namespace socketcan

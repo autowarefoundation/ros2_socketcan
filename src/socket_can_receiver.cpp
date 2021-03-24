@@ -51,11 +51,11 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
     auto read_set = single_set(m_file_descriptor);
     // Wait
     if (0 == select(m_file_descriptor + 1, &read_set, NULL, NULL, &c_timeout)) {
-      throw SocketCanTimeout{"CAN Send Timeout"};
+      throw SocketCanTimeout{"CAN Receive Timeout"};
     }
     //lint --e{9130, 1924, 9123, 9125, 1924, 9126} NOLINT
     if (!FD_ISSET(m_file_descriptor, &read_set)) {
-      throw SocketCanTimeout{"CAN Send timeout"};
+      throw SocketCanTimeout{"CAN Receive timeout"};
     }
   }
 }
