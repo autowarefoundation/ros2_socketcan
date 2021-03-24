@@ -16,41 +16,61 @@
 
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, EmitEvent
+from launch.actions import (DeclareLaunchArgument, EmitEvent,
+                            RegisterEventHandler)
 from launch.conditions import IfCondition
+from launch.event_handlers import OnProcessStart
 from launch.events import matches_action
 from launch.substitutions import LaunchConfiguration, TextSubstitution
 from launch_ros.actions import LifecycleNode
+from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
-import lifecycle_msgs.msg
+from lifecycle_msgs.msg import Transition
 
 
 def generate_launch_description():
-    socket_can_receiver_node = LifecycleNode(package='ros2_socketcan',
-                                             executable='socket_can_receiver_node_exe',
-                                             name='socket_can_receiver',
-                                             namespace=TextSubstitution(text=''),
-                                             parameters=[{
-                                                 'interface': LaunchConfiguration('interface'),
-                                                 'interval_sec':
-                                                     LaunchConfiguration('interval_sec'),
-                                             }],
-                                             output='screen')
+    socket_can_receiver_node = LifecycleNode(
+        package='ros2_socketcan',
+        executable='socket_can_receiver_node_exe',
+        name='socket_can_receiver',
+        namespace=TextSubstitution(text=''),
+        parameters=[{
+            'interface': LaunchConfiguration('interface'),
+            'interval_sec':
+            LaunchConfiguration('interval_sec'),
+        }],
+        output='screen')
 
-    socket_can_receiver_configure_trans_event = EmitEvent(
-        event=ChangeState(
-            lifecycle_node_matcher=matches_action(socket_can_receiver_node),
-            transition_id=lifecycle_msgs.msg.Transition.TRANSITION_CONFIGURE,
-        ),
-        condition=IfCondition(LaunchConfiguration('auto_configure')),
+    socket_can_receiver_configure_event_handler = RegisterEventHandler(
+        event_handler=OnProcessStart(
+            target_action=socket_can_receiver_node,
+            on_start=[
+                EmitEvent(
+                    event=ChangeState(
+                        lifecycle_node_matcher=matches_action(socket_can_receiver_node),
+                        transition_id=Transition.TRANSITION_CONFIGURE,
+                    ),
+                    condition=IfCondition(LaunchConfiguration('auto_configure')),
+                ),
+            ],
+        )
     )
 
-    socket_can_receiver_activate_trans_event = EmitEvent(
-        event=ChangeState(
-            lifecycle_node_matcher=matches_action(socket_can_receiver_node),
-            transition_id=lifecycle_msgs.msg.Transition.TRANSITION_ACTIVATE,
+    socket_can_receiver_activate_event_handler = RegisterEventHandler(
+        event_handler=OnStateTransition(
+            target_lifecycle_node=socket_can_receiver_node,
+            start_state='configuring',
+            goal_state='inactive',
+            entities=[
+                EmitEvent(
+                    event=ChangeState(
+                        lifecycle_node_matcher=matches_action(socket_can_receiver_node),
+                        transition_id=Transition.TRANSITION_ACTIVATE,
+                    ),
+                    condition=IfCondition(LaunchConfiguration('auto_activate')),
+                ),
+            ],
         ),
-        condition=IfCondition(LaunchConfiguration('auto_activate')),
     )
 
     return LaunchDescription([
@@ -59,6 +79,6 @@ def generate_launch_description():
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
         socket_can_receiver_node,
-        socket_can_receiver_configure_trans_event,
-        socket_can_receiver_activate_trans_event,
+        socket_can_receiver_configure_event_handler,
+        socket_can_receiver_activate_event_handler,
     ])
