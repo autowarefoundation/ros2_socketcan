@@ -105,6 +105,7 @@ void SocketCanReceiverNode::receive()
 
   while (rclcpp::ok()) {
     if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
+      std::this_thread::sleep_for(500ns);
       continue;
     }
 
