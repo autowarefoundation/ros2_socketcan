@@ -23,6 +23,7 @@
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
+using lifecycle_msgs::msg::State;
 using namespace std::chrono_literals;
 
 namespace drivers
@@ -103,6 +104,10 @@ void SocketCanReceiverNode::receive()
   frame_msg.header.frame_id = "can";
 
   while (rclcpp::ok()) {
+    if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
+      continue;
+    }
+
     try {
       receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
     } catch (const std::exception & ex) {

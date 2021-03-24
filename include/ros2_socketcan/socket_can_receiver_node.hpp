@@ -25,6 +25,7 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <rosidl_runtime_cpp/message_initialization.hpp>
 #include <can_msgs/msg/frame.hpp>
+#include <lifecycle_msgs/msg/state.hpp>
 
 #include <memory>
 #include <thread>
