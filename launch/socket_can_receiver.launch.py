@@ -50,10 +50,10 @@ def generate_launch_description():
                         lifecycle_node_matcher=matches_action(socket_can_receiver_node),
                         transition_id=Transition.TRANSITION_CONFIGURE,
                     ),
-                    condition=IfCondition(LaunchConfiguration('auto_configure')),
                 ),
             ],
-        )
+        ),
+        condition=IfCondition(LaunchConfiguration('auto_configure')),
     )
 
     socket_can_receiver_activate_event_handler = RegisterEventHandler(
@@ -67,10 +67,10 @@ def generate_launch_description():
                         lifecycle_node_matcher=matches_action(socket_can_receiver_node),
                         transition_id=Transition.TRANSITION_ACTIVATE,
                     ),
-                    condition=IfCondition(LaunchConfiguration('auto_activate')),
                 ),
             ],
         ),
+        condition=IfCondition(LaunchConfiguration('auto_activate')),
     )
 
     return LaunchDescription([
