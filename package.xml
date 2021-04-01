@@ -4,7 +4,7 @@
   <name>ros2_socketcan</name>
   <version>0.0.2</version>
   <description>Simple wrapper around SocketCAN</description>
-  <maintainer email="opensource@apex.ai">Apex.AI, Inc.</maintainer>
+  <maintainer email="whitleysoftwareservices@gmail.com">Josh Whitley</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
