@@ -2,8 +2,8 @@
 Changelog for package ros2_socketcan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2021-04-01)
+------------------
 * Initial release
 * Initial port from Autoware.Auto
 * Initial commit
