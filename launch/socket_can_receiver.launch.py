@@ -38,6 +38,7 @@ def generate_launch_description():
             'interface': LaunchConfiguration('interface'),
             'interval_sec':
             LaunchConfiguration('interval_sec'),
+            'use_bus_time': LaunchConfiguration('use_bus_time'),
         }],
         output='screen')
 
@@ -76,6 +77,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('interface', default_value='can0'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
+        DeclareLaunchArgument('use_bus_time', default_value='false'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
         socket_can_receiver_node,

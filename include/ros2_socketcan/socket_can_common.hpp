@@ -23,6 +23,15 @@
 #include <chrono>
 #include <string>
 
+/**
+ * Convert timeval to microseconds from epoch
+ * @param tv
+ * @return epoch time
+ */
+inline uint64_t tv2TimeStamp(struct timeval tv) {
+    return uint64_t(tv.tv_sec)*1e6 + tv.tv_usec;
+}
+
 namespace drivers
 {
 namespace socketcan
