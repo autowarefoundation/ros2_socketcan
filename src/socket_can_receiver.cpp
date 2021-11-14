@@ -18,9 +18,12 @@
 #include "ros2_socketcan/socket_can_receiver.hpp"
 
 #include <unistd.h>  // for close()
+#include <sys/ioctl.h>
+#include <sys/types.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <linux/can.h>
+#include <linux/sockios.h>
 
 #include <cstring>
 #include <string>
@@ -61,7 +64,7 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanoseconds timeout) const
+std::tuple<CanId, uint64_t> SocketCanReceiver::receive(void * const data, const std::chrono::nanoseconds timeout) const
 {
   wait(timeout);
   // Read
@@ -80,7 +83,14 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
   // Write
   const auto data_length = static_cast<CanId::LengthT>(frame.can_dlc);
   (void)std::memcpy(data, static_cast<void *>(&frame.data[0U]), data_length);
-  return CanId{frame.can_id, data_length};
+
+  // get packet timestamp
+  struct timeval tv;
+  ioctl(m_file_descriptor, SIOCGSTAMP, &tv);
+
+  uint64_t bus_time = tv2TimeStamp(tv);
+
+  return std::make_tuple(CanId{frame.can_id, data_length}, bus_time);
 }
 
 }  // namespace socketcan

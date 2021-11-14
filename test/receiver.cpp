@@ -54,7 +54,8 @@ TEST_F(DISABLED_receiver, basic_typed)
   {
     uint32_t receive_msg{};
     CanId receive_id{};
-    EXPECT_NO_THROW(receive_id = receiver_->receive(receive_msg, receive_timeout_));
+    int bus_time;
+    EXPECT_NO_THROW(std::tie(receive_id, bus_time) = receiver_->receive(receive_msg, receive_timeout_));
     EXPECT_EQ(receive_msg, send_msg);
     EXPECT_EQ(receive_id.length(), sizeof(send_msg));
     EXPECT_EQ(send_id.get(), receive_id.get());
@@ -83,8 +84,7 @@ TEST_F(DISABLED_receiver, ping_pong)
     EXPECT_NO_THROW(sender_->send(idx, send_id, send_timeout_)) << idx;
     {
       decltype(idx) receive_msg{};
-      CanId receive_id{};
-      receive_id = receiver_->receive(receive_msg, receive_timeout_);
+      auto [receive_id, bus_time] = receiver_->receive(receive_msg, receive_timeout_);
       EXPECT_EQ(receive_msg, idx);
       EXPECT_EQ(receive_id.length(), sizeof(idx));
       EXPECT_EQ(send_id.get(), receive_id.get());

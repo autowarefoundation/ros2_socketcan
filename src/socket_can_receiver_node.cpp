@@ -33,13 +33,15 @@ namespace socketcan
 SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
 : lc::LifecycleNode("socket_can_receiver_node", options)
 {
-  interface_ = this->declare_parameter("interface", "can0");
+  interface_ = this->declare_parameter<std::string>("interface", "can0");
+  use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(interval_sec));
 
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
+  RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
 }
 
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
@@ -100,6 +102,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_shutdown(const lc::State & state)
 void SocketCanReceiverNode::receive()
 {
   CanId receive_id{};
+  uint64_t bus_time = 0;
   can_msgs::msg::Frame frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
   frame_msg.header.frame_id = "can";
 
@@ -110,7 +113,7 @@ void SocketCanReceiverNode::receive()
     }
 
     try {
-      receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
+      std::tie(receive_id, bus_time) = receiver_->receive(frame_msg.data.data(), interval_ns_);
     } catch (const std::exception & ex) {
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 1000,
@@ -118,7 +121,11 @@ void SocketCanReceiverNode::receive()
         interface_.c_str(), ex.what());
       continue;
     }
-    frame_msg.header.stamp = this->now();
+    if (use_bus_time_) {
+      frame_msg.header.stamp = rclcpp::Time(static_cast<int64_t>(bus_time*1000U)) ;
+    } else {
+      frame_msg.header.stamp = this->now();
+    }
     frame_msg.id = receive_id.identifier();
     frame_msg.is_rtr = (receive_id.frame_type() == FrameType::REMOTE);
     frame_msg.is_extended = receive_id.is_extended();

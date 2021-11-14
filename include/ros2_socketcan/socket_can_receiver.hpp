@@ -25,6 +25,7 @@
 #include <chrono>
 #include <cstring>
 #include <string>
+#include <tuple>
 
 namespace drivers
 {
@@ -47,7 +48,7 @@ public:
   /// \return The CanId for the received can_frame, with length appropriately populated
   /// \throw SocketCanTimeout On timeout
   /// \throw std::runtime_error on other errors
-  CanId receive(
+  std::tuple<CanId, uint64_t> receive(
     void * const data,
     const std::chrono::nanoseconds timeout = std::chrono::nanoseconds::zero()) const;
   /// Receive typed CAN data. Slightly less efficient than untyped interface; has extra copy and
@@ -61,18 +62,18 @@ public:
   /// \throw std::runtime_error If received data would not fit into provided type
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
-  CanId receive(
+  std::tuple<CanId, uint64_t> receive(
     T & data,
     const std::chrono::nanoseconds timeout = std::chrono::nanoseconds::zero()) const
   {
     static_assert(sizeof(data) <= MAX_DATA_LENGTH, "Data type too large for CAN");
     std::array<uint8_t, MAX_DATA_LENGTH> data_raw{};
-    const auto ret = receive(&data_raw[0U], timeout);
+    const auto [ret, bus_time] = receive(&data_raw[0U], timeout);
     if (ret.length() != sizeof(data)) {
       throw std::runtime_error{"Received CAN data is of size incompatible with provided type!"};
     }
     (void)std::memcpy(&data, &data_raw[0U], ret.length());
-    return ret;
+    return std::make_tuple(ret, bus_time);
   }
 
 private:
