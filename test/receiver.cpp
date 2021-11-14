@@ -54,7 +54,7 @@ TEST_F(DISABLED_receiver, basic_typed)
   {
     uint32_t receive_msg{};
     CanId receive_id{};
-    int bus_time;
+    uint64_t bus_time;
     EXPECT_NO_THROW(std::tie(receive_id, bus_time) = receiver_->receive(receive_msg, receive_timeout_));
     EXPECT_EQ(receive_msg, send_msg);
     EXPECT_EQ(receive_id.length(), sizeof(send_msg));
