@@ -122,7 +122,7 @@ void SocketCanReceiverNode::receive()
     }
 
     if (use_bus_time_) {
-      frame_msg.header.stamp = rclcpp::Time(static_cast<int64_t>(receive_id.get_bus_time()*1000U)) ;
+      frame_msg.header.stamp = rclcpp::Time(static_cast<int64_t>(receive_id.get_bus_time()*1000U));
     } else {
       frame_msg.header.stamp = this->now();
     }

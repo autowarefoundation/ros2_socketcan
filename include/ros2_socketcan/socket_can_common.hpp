@@ -23,15 +23,6 @@
 #include <chrono>
 #include <string>
 
-/**
- * Convert timeval to microseconds from epoch
- * @param tv
- * @return epoch time
- */
-inline uint64_t tv2TimeStamp(struct timeval tv) {
-    return uint64_t(tv.tv_sec)*1e6 + tv.tv_usec;
-}
-
 namespace drivers
 {
 namespace socketcan
@@ -45,6 +36,8 @@ namespace socketcan
 int32_t bind_can_socket(const std::string & interface);
 /// Convert std::chrono duration to timeval (with microsecond resolution)
 struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept;
+/// Convert timeval to time in microseconds
+uint64_t from_timeval(const struct timeval tv) noexcept;
 /// Create a fd_set for use with select() that only contains the specified file descriptor
 fd_set single_set(int32_t file_descriptor) noexcept;
 

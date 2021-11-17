@@ -87,7 +87,7 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
   // get bus timestamp
   struct timeval tv;
   ioctl(m_file_descriptor, SIOCGSTAMP, &tv);
-  uint64_t bus_time = tv2TimeStamp(tv);
+  uint64_t bus_time = from_timeval(tv);
 
   return CanId{frame.can_id, bus_time, data_length};
 }
