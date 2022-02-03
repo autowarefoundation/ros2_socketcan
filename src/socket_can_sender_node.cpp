@@ -102,8 +102,8 @@ void SocketCanSenderNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
       type = FrameType::DATA;
     }
 
-    CanId send_id = msg->is_extended ? CanId(msg->id, type, ExtendedFrame) :
-      CanId(msg->id, type, StandardFrame);
+    CanId send_id = msg->is_extended ? CanId(msg->id, 0, type, ExtendedFrame) :
+      CanId(msg->id, 0, type, StandardFrame);
     try {
       sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
     } catch (const std::exception & ex) {

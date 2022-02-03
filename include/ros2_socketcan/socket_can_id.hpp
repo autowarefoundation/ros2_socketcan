@@ -18,9 +18,9 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_ID_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_ID_HPP_
 
-#include <ros2_socketcan/visibility_control.hpp>
-
 #include <stdexcept>
+
+#include "ros2_socketcan/visibility_control.hpp"
 
 namespace drivers
 {
@@ -63,13 +63,13 @@ public:
   // Default constructor: standard data frame with id 0
   CanId() = default;
   /// Directly set id, blindly taking whatever bytes are given
-  explicit CanId(const IdT raw_id, const LengthT data_length = 0U);
+  explicit CanId(const IdT raw_id, const uint64_t bus_time, const LengthT data_length = 0U);
   /// Sets ID
   /// \throw std::domain_error if id would get truncated
-  CanId(const IdT id, FrameType type, StandardFrame_);
+  CanId(const IdT id, const uint64_t bus_time, FrameType type, StandardFrame_);
   /// Sets ID
   /// \throw std::domain_error if id would get truncated
-  CanId(const IdT id, FrameType type, ExtendedFrame_);
+  CanId(const IdT id, const uint64_t bus_time, FrameType type, ExtendedFrame_);
 
   /// Sets bit 31 to 0
   CanId & standard() noexcept;
@@ -99,11 +99,14 @@ public:
   /// Get the length of the data; only nonzero on received data
   LengthT length() const noexcept;
 
+  uint64_t get_bus_time() {return bus_time;}
+
 private:
-  SOCKETCAN_LOCAL CanId(const IdT id, FrameType type, bool is_extended);
+  SOCKETCAN_LOCAL CanId(const IdT id, const uint64_t bus_time, FrameType type, bool is_extended);
 
   IdT m_id{};
   LengthT m_data_length{};
+  uint64_t bus_time;
 };  // class CanId
 }  // namespace socketcan
 }  // namespace drivers

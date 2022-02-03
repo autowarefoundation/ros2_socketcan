@@ -24,14 +24,14 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include <ros2_socketcan/socket_can_sender.hpp>
-#include <ros2_socketcan/socket_can_receiver.hpp>
-
 #include <gtest/gtest.h>
 #include <cstring>
 
 #include <memory>
 #include <string>
+
+#include "ros2_socketcan/socket_can_sender.hpp"
+#include "ros2_socketcan/socket_can_receiver.hpp"
 
 using drivers::socketcan::SocketCanSender;
 using drivers::socketcan::SocketCanReceiver;
@@ -46,11 +46,17 @@ using drivers::socketcan::MAX_DATA_LENGTH;
 TEST(socket_can_basics, id_bad)
 {
   // Bad frame type
-  EXPECT_THROW(CanId{0x6000'0000U}, std::domain_error);
+  // had to re-write to use lambda to compile properly
+  const auto construct_bad_frame = []() -> auto {
+      constexpr CanId::IdT truncated_id = 0x6000'0000U;
+      return CanId{truncated_id, 0};
+    };
+  EXPECT_THROW(construct_bad_frame(), std::domain_error);
+
   // Standard truncation
   const auto construct = [](const auto frame) -> auto {
       constexpr CanId::IdT truncated_id = 0xFFFF'FFFFU;
-      return CanId{truncated_id, FrameType::DATA, frame};
+      return CanId{truncated_id, 0, FrameType::DATA, frame};
     };
   EXPECT_THROW(construct(StandardFrame), std::domain_error);
   EXPECT_THROW(construct(ExtendedFrame), std::domain_error);

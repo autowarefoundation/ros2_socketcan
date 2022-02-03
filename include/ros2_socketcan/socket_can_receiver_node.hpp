@@ -17,19 +17,19 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_NODE_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_NODE_HPP_
 
-#include <ros2_socketcan/visibility_control.hpp>
-#include <ros2_socketcan/socket_can_receiver.hpp>
-
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_components/register_node_macro.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <rosidl_runtime_cpp/message_initialization.hpp>
-#include <can_msgs/msg/frame.hpp>
-#include <lifecycle_msgs/msg/state.hpp>
-
 #include <memory>
 #include <thread>
 #include <string>
+
+#include "ros2_socketcan/visibility_control.hpp"
+#include "ros2_socketcan/socket_can_receiver.hpp"
+
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_components/register_node_macro.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "rosidl_runtime_cpp/message_initialization.hpp"
+#include "can_msgs/msg/frame.hpp"
+#include "lifecycle_msgs/msg/state.hpp"
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
@@ -76,6 +76,7 @@ private:
   std::unique_ptr<SocketCanReceiver> receiver_;
   std::unique_ptr<std::thread> receiver_thread_;
   std::chrono::nanoseconds interval_ns_;
+  bool use_bus_time_;
 };
 }  // namespace socketcan
 }  // namespace drivers

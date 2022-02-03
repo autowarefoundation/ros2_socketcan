@@ -37,20 +37,22 @@ constexpr CanId::IdT EXTENDED_ID_MASK = CAN_EFF_MASK;
 constexpr CanId::IdT STANDARD_ID_MASK = CAN_SFF_MASK;
 
 ////////////////////////////////////////////////////////////////////////////////
-CanId::CanId(const IdT raw_id, const LengthT data_length)
+CanId::CanId(const IdT raw_id, const uint64_t bus_time, const LengthT data_length)
 : m_id{raw_id},
-  m_data_length{data_length}
+  m_data_length{data_length},
+  bus_time(bus_time)
 {
   (void)frame_type();  // just to throw
 }
-CanId::CanId(const IdT id, FrameType type, StandardFrame_)
-: CanId{id, type, false} {}
+CanId::CanId(const IdT id, const uint64_t bus_time, FrameType type, StandardFrame_)
+: CanId{id, bus_time, type, false} {}
 
-CanId::CanId(const IdT id, FrameType type, ExtendedFrame_)
-: CanId{id, type, true} {}
+CanId::CanId(const IdT id, const uint64_t bus_time, FrameType type, ExtendedFrame_)
+: CanId{id, bus_time, type, true} {}
 
 ////////////////////////////////////////////////////////////////////////////////
-CanId::CanId(const IdT id, FrameType type, bool is_extended)
+CanId::CanId(const IdT id, const uint64_t bus_time, FrameType type, bool is_extended)
+: bus_time(bus_time)
 {
   // Set extended bit
   if (is_extended) {
