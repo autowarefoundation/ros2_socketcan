@@ -50,7 +50,7 @@ TEST(socket_can_basics, id_bad)
   const auto construct_bad_frame = []() -> auto {
       constexpr CanId::IdT truncated_id = 0x6000'0000U;
       return CanId{truncated_id, 0};
-  };
+    };
   EXPECT_THROW(construct_bad_frame(), std::domain_error);
 
   // Standard truncation

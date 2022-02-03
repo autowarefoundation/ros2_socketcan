@@ -90,7 +90,7 @@ struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept
 ////////////////////////////////////////////////////////////////////////////////
 uint64_t from_timeval(const struct timeval tv) noexcept
 {
-    return static_cast<uint64_t>(tv.tv_sec)*1e6 + tv.tv_usec;
+  return static_cast<uint64_t>(tv.tv_sec) * 1e6 + tv.tv_usec;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

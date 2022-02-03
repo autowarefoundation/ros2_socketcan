@@ -99,7 +99,7 @@ public:
   /// Get the length of the data; only nonzero on received data
   LengthT length() const noexcept;
 
-  uint64_t get_bus_time(){ return bus_time; }
+  uint64_t get_bus_time() {return bus_time;}
 
 private:
   SOCKETCAN_LOCAL CanId(const IdT id, const uint64_t bus_time, FrameType type, bool is_extended);
