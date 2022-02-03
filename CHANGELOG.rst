@@ -2,8 +2,8 @@
 Changelog for package ros2_socketcan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2022-02-03)
+------------------
 * Added bus time (`#12 <https://github.com/autowarefoundation/ros2_socketcan/issues/12>`_)
   * added the ability to get the bus time for the can packet, versus using ros time when received; packs bus time as part of the can id struct
   * cleanup; cast fix
