@@ -18,9 +18,9 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_ID_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_ID_HPP_
 
-#include <ros2_socketcan/visibility_control.hpp>
-
 #include <stdexcept>
+
+#include "ros2_socketcan/visibility_control.hpp"
 
 namespace drivers
 {
