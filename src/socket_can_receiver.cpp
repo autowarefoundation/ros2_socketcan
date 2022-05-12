@@ -66,7 +66,7 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
 ////////////////////////////////////////////////////////////////////////////////
 CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanoseconds timeout) const
 {
-  wait(timeout);
+  // wait(timeout);
   // Read
   struct can_frame frame;
   const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
