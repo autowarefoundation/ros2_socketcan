@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <sstream>
+#include <vector>
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
@@ -36,12 +38,33 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
+  auto filters_list = this->declare_parameter("filters", std::vector<int64_t>({0x0, 0x0}));
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(interval_sec));
 
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
+
+  // create and print CAN filters list
+  if (filters_list.size() % 2 != 0) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "filters not applied as list lenght is not a multiple of 2 (id and mask)!");
+  } else {
+    std::ostringstream ss;
+    ss << std::hex;
+    for (std::size_t i = 0; i < filters_list.size(); i += 2) {
+      ss << "[" << filters_list[i] << ":" << filters_list[i + 1] << "]";
+      if (i + 2 != filters_list.size()) {
+        ss << ",";
+      }
+      can_filters_.push_back(
+        {static_cast<canid_t>(filters_list[i]),
+          static_cast<canid_t>(filters_list[i + 1])});  // push to filter list
+    }
+    RCLCPP_INFO(this->get_logger(), "filters [id:mask]: %s", ss.str().c_str());
+  }
 }
 
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
@@ -50,6 +73,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 
   try {
     receiver_ = std::make_unique<SocketCanReceiver>(interface_);
+    receiver_->SetCanFilters(can_filters_);
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(
       this->get_logger(), "Error opening CAN receiver: %s - %s",

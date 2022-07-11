@@ -29,6 +29,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -73,6 +74,18 @@ int32_t bind_can_socket(const std::string & interface)
   //lint -restore NOLINT
 
   return file_descriptor;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void set_can_filter(int32_t fd, const std::vector<struct can_filter> & f_list)
+{
+  if (0 !=
+    setsockopt(
+      fd, SOL_CAN_RAW, CAN_RAW_FILTER, f_list.empty() ? NULL : f_list.data(),
+      sizeof(can_filter) * f_list.size()))
+  {
+    throw std::runtime_error{"Failed to set up CAN filters: " + std::string{strerror(errno)}};
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

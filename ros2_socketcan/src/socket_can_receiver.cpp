@@ -27,6 +27,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -44,6 +45,12 @@ SocketCanReceiver::~SocketCanReceiver() noexcept
 {
   // Can't do anything on error; in fact generally shouldn't on close() error
   (void)close(m_file_descriptor);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void SocketCanReceiver::SetCanFilters(const std::vector<struct can_filter> & filters)
+{
+  set_can_filter(m_file_descriptor, filters);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

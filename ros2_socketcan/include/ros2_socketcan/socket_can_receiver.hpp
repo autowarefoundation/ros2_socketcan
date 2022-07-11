@@ -18,10 +18,12 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_HPP_
 
+#include <linux/can.h>
 #include <array>
 #include <chrono>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "ros2_socketcan/visibility_control.hpp"
 #include "ros2_socketcan/socket_can_id.hpp"
@@ -39,6 +41,11 @@ public:
   explicit SocketCanReceiver(const std::string & interface = "can0");
   /// Destructor
   ~SocketCanReceiver() noexcept;
+
+  /// Set SocketCAN filters
+  /// \param[in] filters List of filters to be applied.
+  /// \throw std::runtime_error If filters couldn't be applied
+  void SetCanFilters(const std::vector<struct can_filter> & filters);
 
   /// Receive CAN data
   /// \param[out] data A buffer to be written with data bytes. Must be at least 8 bytes in size

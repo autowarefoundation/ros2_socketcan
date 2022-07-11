@@ -91,3 +91,77 @@ TEST_F(DISABLED_receiver, ping_pong)
     }
   }
 }
+
+TEST_F(DISABLED_receiver, can_filters)
+{
+  constexpr uint32_t send_msg = 0x5A'5A'5A'5AU;
+
+  // pass only ids: 0x100, 0x250, 0x555
+  receiver_->SetCanFilters({{0x100, 0x7FF}, {0x250, 0x7FF}, {0x555, 0x7FF}});
+  CanId send_id{};
+  send_id.standard();
+
+  for (uint32_t idx = 0x50U; idx < 0x100U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+  }
+
+  send_id.identifier(static_cast<CanId::IdT>(0x100U));
+  sender_->send(send_msg, send_id, send_timeout_);
+
+  for (uint32_t idx = 0x200U; idx < 0x250U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+  }
+
+  send_id.identifier(static_cast<CanId::IdT>(0x250U));
+  sender_->send(send_msg, send_id, send_timeout_);
+
+  for (uint32_t idx = 0x500U; idx < 0x550U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+  }
+
+  send_id.identifier(static_cast<CanId::IdT>(0x555U));
+  sender_->send(send_msg, send_id, send_timeout_);
+
+  uint32_t receive_msg{};
+  CanId receive_id{};
+  receive_id = receiver_->receive(receive_msg, receive_timeout_);
+  EXPECT_EQ(0x100U, receive_id.get());
+  receive_id = receiver_->receive(receive_msg, receive_timeout_);
+  EXPECT_EQ(0x250U, receive_id.get());
+  receive_id = receiver_->receive(receive_msg, receive_timeout_);
+  EXPECT_EQ(0x555U, receive_id.get());
+
+  // pass only even ids
+  receiver_->SetCanFilters({{0x0, 0x1}});
+  send_id.extended();
+  for (uint32_t idx = 0x1000U; idx < 0x1050U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+    if (idx % 2 == 0) {
+      receive_id = receiver_->receive(receive_msg, receive_timeout_);
+      EXPECT_EQ(send_id.get(), receive_id.get());
+    }
+  }
+
+  // pass none ids
+  receiver_->SetCanFilters({});
+  send_id.standard();
+  for (uint32_t idx = 0x300U; idx < 0x330U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+  }
+  EXPECT_THROW(receive_id = receiver_->receive(receive_msg, receive_timeout_), std::runtime_error);
+
+  // pass all frames
+  receiver_->SetCanFilters({{0x0, 0x0}});
+  send_id.standard();
+  for (uint32_t idx = 0x300U; idx < 0x330U; idx++) {
+    send_id.identifier(static_cast<CanId::IdT>(idx));
+    sender_->send(send_msg, send_id, send_timeout_);
+    receive_id = receiver_->receive(receive_msg, receive_timeout_);
+    EXPECT_EQ(send_id.get(), receive_id.get());
+  }
+}
