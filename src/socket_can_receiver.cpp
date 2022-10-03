@@ -81,7 +81,7 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
     throw std::logic_error{"Message was wrong size"};
   }
   // Write
-  const auto data_length = static_cast<CanId::LengthT>(frame.can_dlc);
+  const auto data_length = static_cast<CanId::LengthT>(sizeof(frame.data));
   (void)std::memcpy(data, static_cast<void *>(&frame.data[0U]), data_length);
 
   // get bus timestamp
