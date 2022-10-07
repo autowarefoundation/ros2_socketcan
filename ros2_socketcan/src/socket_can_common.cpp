@@ -82,7 +82,7 @@ struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept
   constexpr auto BILLION = 1'000'000'000LL;
   struct timeval c_timeout;
   c_timeout.tv_sec = static_cast<decltype(c_timeout.tv_sec)>(count / BILLION);
-  c_timeout.tv_usec = static_cast<decltype(c_timeout.tv_usec)>((count % BILLION) * 1000LL);
+  c_timeout.tv_usec = static_cast<decltype(c_timeout.tv_usec)>((count % BILLION) / 1000LL);
 
   return c_timeout;
 }
