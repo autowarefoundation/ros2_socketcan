@@ -38,10 +38,21 @@ namespace socketcan
 int32_t bind_can_socket(const std::string & interface);
 
 /// Set SocketCAN filters
-/// \param[in] fd File descriptor of socket
+/// \param[in] fd File descriptor of the socket
 /// \param[in] f_list List of filters to be applied.
 /// \throw std::runtime_error If filters couldn't be applied
 void set_can_filter(int32_t fd, const std::vector<struct can_filter> & f_list);
+
+/// Set SocketCAN error filter
+/// \param[in] fd File descriptor of the socket
+/// \param[in] err_mask Error mask to be applied as a filter
+void set_can_err_filter(int32_t fd, can_err_mask_t err_mask);
+
+/// Set filters joining option for SocketCAN. If set, all filters
+/// must match for the frame to be passed.
+/// \param[in] fd File descriptor of the socket
+/// \param[in] join_filters Should the filters be joined?
+void set_can_filter_join(int32_t fd, bool join_filters);
 
 /// Convert std::chrono duration to timeval (with microsecond resolution)
 struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept;

@@ -77,7 +77,6 @@ private:
   std::unique_ptr<SocketCanReceiver> receiver_;
   std::unique_ptr<std::thread> receiver_thread_;
   std::chrono::nanoseconds interval_ns_;
-  std::vector<struct can_filter> can_filters_;
   bool use_bus_time_;
 };
 }  // namespace socketcan

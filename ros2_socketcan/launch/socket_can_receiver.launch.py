@@ -79,9 +79,26 @@ def generate_launch_description():
         DeclareLaunchArgument('interface', default_value='can0'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
         DeclareLaunchArgument('use_bus_time', default_value='false'),
-        DeclareLaunchArgument('filters', default_value='[0,0]',
-                              description='Has to be multiple of 2 containing '
-                                          'pairs of [can_id:mask].'),
+        DeclareLaunchArgument('filters', default_value='0:0',
+                              description='Comma separated filters can be specified for each given'
+                                          ' CAN interface.\n'
+                                          '\t<can_id>:<can_mask>\n'
+                                          '\t\t(matches when <received_can_id> & mask == can_id & '
+                                          'mask)\n'
+                                          '\t<can_id>~<can_mask>\n'
+                                          '\t\t(matches when <received_can_id> & mask != can_id & '
+                                          'mask)\n'
+                                          '\t#<error_mask>\n'
+                                          '\t\t(set error frame filter, see include/linux/can/'
+                                          'error.h)\n'
+                                          '\t[j|J]\n'
+                                          '\t\t(join the given CAN filters - logical AND '
+                                          'semantic)\n\n'
+                                          '\tCAN IDs, masks and data content are given and '
+                                          'expected in hexadecimal values. When can_id and '
+                                          'can_mask are both 8 digits, they are assumed to '
+                                          "be 29 bit EFF. '0:0' default filter will accept "
+                                          'all data frames.'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
         socket_can_receiver_node,
