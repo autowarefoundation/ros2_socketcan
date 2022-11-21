@@ -5,4 +5,4 @@ bool is_extended
 bool is_error
 bool is_fd_frame
 uint8 dlc
-uint8[64] data
+uint8[<=64] data
