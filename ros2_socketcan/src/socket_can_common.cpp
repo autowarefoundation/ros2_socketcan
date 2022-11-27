@@ -147,5 +147,77 @@ fd_set single_set(int32_t file_descriptor) noexcept
 
   return descriptor_set;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+uint8_t dlc_to_len(uint8_t dlc) noexcept
+{
+  switch (dlc) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+      return dlc;
+
+    case 9:
+      return 12U;
+    case 10:
+      return 16U;
+    case 11:
+      return 20U;
+    case 12:
+      return 24U;
+    case 13:
+      return 32U;
+    case 14:
+      return 48U;
+    case 15:
+      return 64U;
+    default:
+      return dlc;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+uint8_t len_to_dlc(uint8_t len) noexcept
+{
+  if (len < 9) {
+    return len;
+  }
+
+  if (len < 13) {
+    return 9U;
+  }
+
+  if (len < 17) {
+    return 10U;
+  }
+
+  if (len < 21) {
+    return 11U;
+  }
+
+  if (len < 25) {
+    return 12U;
+  }
+
+  if (len < 33) {
+    return 13U;
+  }
+
+  if (len < 49) {
+    return 14U;
+  }
+
+  if (len < 65) {
+    return 15U;
+  }
+
+  return len;
+}
 }  // namespace socketcan
 }  // namespace drivers

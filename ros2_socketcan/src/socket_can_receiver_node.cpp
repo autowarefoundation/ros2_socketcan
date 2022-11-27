@@ -36,14 +36,16 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
 {
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
+  enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(interval_sec));
 
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
-  RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
+  RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
+  RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
 }
 
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
@@ -66,6 +68,11 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   RCLCPP_DEBUG(this->get_logger(), "Receiver successfully configured.");
   frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("from_can_bus", 500);
 
+  if (enable_fd_) {
+    fd_frames_pub_ =
+      this->create_publisher<ros2_socketcan_msgs::msg::Frame>("from_can_bus_fd", 500);
+  }
+
   receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
 
   return LNI::CallbackReturn::SUCCESS;
@@ -75,6 +82,11 @@ LNI::CallbackReturn SocketCanReceiverNode::on_activate(const lc::State & state)
 {
   (void)state;
   frames_pub_->on_activate();
+
+  if (enable_fd_) {
+    fd_frames_pub_->on_activate();
+  }
+
   RCLCPP_DEBUG(this->get_logger(), "Receiver activated.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -83,6 +95,11 @@ LNI::CallbackReturn SocketCanReceiverNode::on_deactivate(const lc::State & state
 {
   (void)state;
   frames_pub_->on_deactivate();
+
+  if (enable_fd_) {
+    fd_frames_pub_->on_deactivate();
+  }
+
   RCLCPP_DEBUG(this->get_logger(), "Receiver deactivated.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -91,6 +108,11 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
 {
   (void)state;
   frames_pub_.reset();
+
+  if (enable_fd_) {
+    fd_frames_pub_.reset();
+  }
+
   if (receiver_thread_->joinable()) {
     receiver_thread_->join();
   }

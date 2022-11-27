@@ -33,11 +33,13 @@ SocketCanSenderNode::SocketCanSenderNode(rclcpp::NodeOptions options)
 : lc::LifecycleNode("socket_can_sender_node", options)
 {
   interface_ = this->declare_parameter("interface", "can0");
+  enable_fd_ = this->declare_parameter("enable_can_fd", false);
   double timeout_sec = this->declare_parameter("timeout_sec", 0.01);
   timeout_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(timeout_sec));
 
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
+  RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
   RCLCPP_INFO(this->get_logger(), "timeout(s): %f", timeout_sec);
 }
 
@@ -57,6 +59,13 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
   RCLCPP_DEBUG(this->get_logger(), "Sender successfully configured.");
   frames_sub_ = this->create_subscription<can_msgs::msg::Frame>(
     "to_can_bus", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
+
+  if (enable_fd_) {
+    fd_frames_sub_ = this->create_subscription<ros2_socketcan_msgs::msg::Frame>(
+      "to_can_bus_fd", 500, std::bind(
+        &SocketCanSenderNode::on_fd_frame, this,
+        std::placeholders::_1));
+  }
 
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -106,6 +115,30 @@ void SocketCanSenderNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
       CanId(msg->id, 0, type, StandardFrame);
     try {
       sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
+    } catch (const std::exception & ex) {
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *this->get_clock(), 1000,
+        "Error sending CAN message: %s - %s",
+        interface_.c_str(), ex.what());
+      return;
+    }
+  }
+}
+
+void SocketCanSenderNode::on_fd_frame(const ros2_socketcan_msgs::msg::Frame::SharedPtr msg)
+{
+  if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
+    FrameType type;
+    if (msg->is_error) {
+      type = FrameType::ERROR;
+    } else {
+      type = FrameType::DATA;
+    }
+
+    CanId send_id = msg->is_extended ? CanId(msg->id, 0, type, ExtendedFrame) :
+      CanId(msg->id, 0, type, StandardFrame);
+    try {
+      // sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
     } catch (const std::exception & ex) {
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 1000,

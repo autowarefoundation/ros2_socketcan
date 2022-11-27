@@ -27,7 +27,7 @@ namespace drivers
 namespace socketcan
 {
 
-constexpr std::size_t MAX_DATA_LENGTH = 8U;
+constexpr std::size_t MAX_DATA_LENGTH = 64U;
 /// Special error for timeout
 class SOCKETCAN_PUBLIC SocketCanTimeout : public std::runtime_error
 {
