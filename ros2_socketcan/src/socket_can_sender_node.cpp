@@ -15,6 +15,7 @@
 // Co-developed by Tier IV, Inc. and Apex.AI, Inc.
 
 #include "ros2_socketcan/socket_can_sender_node.hpp"
+#include "ros2_socketcan/socket_can_common.hpp"
 
 #include <chrono>
 #include <memory>
@@ -138,7 +139,7 @@ void SocketCanSenderNode::on_fd_frame(const ros2_socketcan_msgs::msg::Frame::Sha
     CanId send_id = msg->is_extended ? CanId(msg->id, 0, type, ExtendedFrame) :
       CanId(msg->id, 0, type, StandardFrame);
     try {
-      // sender_->send(msg->data.data(), msg->dlc, send_id, timeout_ns_);
+      sender_->send_fd(msg->data.data<void>(), dlc_to_len(msg->dlc), send_id, timeout_ns_);
     } catch (const std::exception & ex) {
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 1000,

@@ -15,6 +15,7 @@
 // Co-developed by Tier IV, Inc. and Apex.AI, Inc.
 
 #include "ros2_socketcan/socket_can_receiver_node.hpp"
+#include "ros2_socketcan/socket_can_common.hpp"
 
 #include <chrono>
 #include <memory>
@@ -133,6 +134,10 @@ void SocketCanReceiverNode::receive()
   can_msgs::msg::Frame frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
   frame_msg.header.frame_id = "can";
 
+  CanId fd_receive_id{};
+  ros2_socketcan_msgs::msg::Frame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
+  fd_frame_msg.header.frame_id = "can";
+
   while (rclcpp::ok()) {
     if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
       std::this_thread::sleep_for(100ms);
@@ -161,6 +166,30 @@ void SocketCanReceiverNode::receive()
     frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
     frame_msg.dlc = receive_id.length();
     frames_pub_->publish(std::move(frame_msg));
+
+    if (enable_fd_) {
+      try {
+        fd_receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
+      } catch (const std::exception & ex) {
+        RCLCPP_WARN_THROTTLE(
+          this->get_logger(), *this->get_clock(), 1000,
+          "Error receiving CAN FD message: %s - %s",
+          interface_.c_str(), ex.what());
+        continue;
+      }
+
+      if (use_bus_time_) {
+        fd_frame_msg.header.stamp =
+          rclcpp::Time(static_cast<int64_t>(fd_receive_id.get_bus_time() * 1000U));
+      } else {
+        fd_frame_msg.header.stamp = this->now();
+      }
+      fd_frame_msg.id = receive_id.identifier();
+      fd_frame_msg.is_extended = receive_id.is_extended();
+      fd_frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
+      fd_frame_msg.dlc = len_to_dlc(fd_receive_id.length());
+      fd_frames_pub_->publish(std::move(fd_frame_msg));
+    }
   }
 }
 

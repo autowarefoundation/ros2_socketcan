@@ -121,6 +121,41 @@ public:
     return ret;
   }
 
+  /// Receive CAN FD data
+  /// \param[out] data A buffer to be written with data bytes. Must be at least 64 bytes in size
+  /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
+  ///                    durations are treated the same as zero timeout
+  /// \return The CanId for the received canfd_frame, with length appropriately populated
+  /// \throw SocketCanTimeout On timeout
+  /// \throw std::runtime_error on other errors
+  CanId receive_fd(
+    void * const data,
+    const std::chrono::nanoseconds timeout = std::chrono::nanoseconds::zero()) const;
+  /// Receive typed CAN FD data. Slightly less efficient than untyped interface; has extra copy and
+  /// branches
+  /// \tparam Type of data to receive, must be 64 bytes or smaller
+  /// \param[out] data A buffer to be written with data bytes. Must be at least 64 bytes in size
+  /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
+  ///                    durations are treated the same as zero timeout
+  /// \return The CanId for the received canfd_frame, with length appropriately populated
+  /// \throw SocketCanTimeout On timeout
+  /// \throw std::runtime_error If received data would not fit into provided type
+  /// \throw std::runtime_error on other errors
+  template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
+  CanId receive_fd(
+    T & data,
+    const std::chrono::nanoseconds timeout = std::chrono::nanoseconds::zero()) const
+  {
+    static_assert(sizeof(data) <= MAX_FD_DATA_LENGTH, "Data type too large for CAN FD");
+    std::array<uint8_t, MAX_FD_DATA_LENGTH> data_raw{};
+    const auto ret = receive_fd(&data_raw[0U], timeout);
+    if (ret.length() != sizeof(data)) {
+      throw std::runtime_error{"Received CAN FD data is of size incompatible with provided type!"};
+    }
+    (void)std::memcpy(&data, &data_raw[0U], ret.length());
+    return ret;
+  }
+
 private:
   // Wait for file descriptor to be available to send data via select()
   SOCKETCAN_LOCAL void wait(const std::chrono::nanoseconds timeout) const;

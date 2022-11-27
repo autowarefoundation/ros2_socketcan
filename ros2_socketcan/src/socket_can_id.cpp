@@ -27,8 +27,11 @@ namespace socketcan
 
 //lint -e{9006} NOLINT false positive: this expression is compile time evaluated
 static_assert(
-  MAX_DATA_LENGTH == sizeof(std::declval<struct canfd_frame>().data),
+  MAX_DATA_LENGTH == sizeof(std::declval<struct can_frame>().data),
   "Unexpected CAN frame data size");
+static_assert(
+  MAX_FD_DATA_LENGTH == sizeof(std::declval<struct canfd_frame>().data),
+  "Unexpected CAN FD frame data size");
 static_assert(std::is_same<CanId::IdT, canid_t>::value, "Underlying type of CanId is incorrect");
 constexpr CanId::IdT EXTENDED_MASK = CAN_EFF_FLAG;
 constexpr CanId::IdT REMOTE_MASK = CAN_RTR_FLAG;
