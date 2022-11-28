@@ -185,8 +185,10 @@ void SocketCanReceiverNode::receive()
         fd_frame_msg.header.stamp = this->now();
       }
       fd_frame_msg.id = receive_id.identifier();
+      fd_frame_msg.is_rtr = false;  // FD frames can't be remote frames
       fd_frame_msg.is_extended = receive_id.is_extended();
       fd_frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
+      fd_frame_msg.is_fd_frame = true;
       fd_frame_msg.dlc = len_to_dlc(fd_receive_id.length());
       fd_frames_pub_->publish(std::move(fd_frame_msg));
     }
