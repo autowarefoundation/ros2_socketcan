@@ -99,13 +99,13 @@ TEST(socket_can_basics, bad_constructor)
   {
     const std::string long_name{"abcdefghijklmnopqrs"};
     ASSERT_GE(long_name.size(), 14U);
-    EXPECT_THROW(SocketCanSender(false, long_name), std::domain_error);
-    EXPECT_THROW(SocketCanReceiver(false, long_name), std::domain_error);
+    EXPECT_THROW(SocketCanSender{long_name}, std::domain_error);
+    EXPECT_THROW(SocketCanReceiver{long_name}, std::domain_error);
   }
   {
     constexpr auto nonexistent_interface = "foo";
-    EXPECT_THROW(SocketCanSender(false, nonexistent_interface), std::runtime_error);
-    EXPECT_THROW(SocketCanReceiver(false, nonexistent_interface), std::runtime_error);
+    EXPECT_THROW(SocketCanSender{nonexistent_interface}, std::runtime_error);
+    EXPECT_THROW(SocketCanReceiver{nonexistent_interface}, std::runtime_error);
   }
 }
 
@@ -120,7 +120,7 @@ protected:
   void SetUp()
   {
     constexpr auto TEST_INTERFACE = "vcan0";
-    sender_ = std::make_unique<SocketCanSender>(false, TEST_INTERFACE);
+    sender_ = std::make_unique<SocketCanSender>(TEST_INTERFACE);
     // Set up file descriptor
     file_descriptor_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     fcntl(file_descriptor_, F_SETFL, O_NONBLOCK);

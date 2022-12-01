@@ -37,9 +37,9 @@ namespace socketcan
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-SocketCanReceiver::SocketCanReceiver(const bool enable_fd, const std::string & interface)
-: m_enable_fd(enable_fd),
-  m_file_descriptor{bind_can_socket(interface, enable_fd)}
+SocketCanReceiver::SocketCanReceiver(const std::string & interface, const bool enable_fd)
+: m_file_descriptor{bind_can_socket(interface, enable_fd)},
+  m_enable_fd(enable_fd)
 {
 }
 

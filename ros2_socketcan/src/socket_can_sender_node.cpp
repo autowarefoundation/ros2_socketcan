@@ -49,7 +49,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
   (void)state;
 
   try {
-    sender_ = std::make_unique<SocketCanSender>(enable_fd_, interface_);
+    sender_ = std::make_unique<SocketCanSender>(interface_, enable_fd_);
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(
       this->get_logger(), "Error opening CAN sender: %s - %s",

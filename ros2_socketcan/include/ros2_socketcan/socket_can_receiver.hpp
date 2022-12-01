@@ -38,7 +38,7 @@ class SOCKETCAN_PUBLIC SocketCanReceiver
 {
 public:
   /// Constructor
-  explicit SocketCanReceiver(const bool enable_fd, const std::string & interface = "can0");
+  explicit SocketCanReceiver(const std::string & interface = "can0", const bool enable_fd = false);
   /// Destructor
   ~SocketCanReceiver() noexcept;
 
@@ -160,8 +160,8 @@ private:
   // Wait for file descriptor to be available to send data via select()
   SOCKETCAN_LOCAL void wait(const std::chrono::nanoseconds timeout) const;
 
-  bool m_enable_fd;
   int32_t m_file_descriptor;
+  bool m_enable_fd;
 };  // class SocketCanReceiver
 
 }  // namespace socketcan

@@ -54,7 +54,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   (void)state;
 
   try {
-    receiver_ = std::make_unique<SocketCanReceiver>(enable_fd_, interface_);
+    receiver_ = std::make_unique<SocketCanReceiver>(interface_, enable_fd_);
     // apply CAN filters
     auto filters = get_parameter("filters").as_string();
     receiver_->SetCanFilters(SocketCanReceiver::CanFilterList(filters));
