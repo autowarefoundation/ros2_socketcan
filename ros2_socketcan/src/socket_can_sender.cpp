@@ -33,8 +33,10 @@ namespace socketcan
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-SocketCanSender::SocketCanSender(const std::string & interface, const CanId & default_id)
-: m_file_descriptor{bind_can_socket(interface)},
+SocketCanSender::SocketCanSender(
+  const bool enable_fd, const std::string & interface,
+  const CanId & default_id)
+: m_file_descriptor{bind_can_socket(interface, enable_fd)},
   m_default_id{default_id}
 {
 }

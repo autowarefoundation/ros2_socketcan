@@ -49,7 +49,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
   (void)state;
 
   try {
-    sender_ = std::make_unique<SocketCanSender>(interface_);
+    sender_ = std::make_unique<SocketCanSender>(enable_fd_, interface_);
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(
       this->get_logger(), "Error opening CAN sender: %s - %s",
@@ -58,10 +58,11 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
   }
 
   RCLCPP_DEBUG(this->get_logger(), "Sender successfully configured.");
-  frames_sub_ = this->create_subscription<can_msgs::msg::Frame>(
-    "to_can_bus", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
 
-  if (enable_fd_) {
+  if (!enable_fd_) {
+    frames_sub_ = this->create_subscription<can_msgs::msg::Frame>(
+      "to_can_bus", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
+  } else {
     fd_frames_sub_ = this->create_subscription<ros2_socketcan_msgs::msg::Frame>(
       "to_can_bus_fd", 500, std::bind(
         &SocketCanSenderNode::on_fd_frame, this,
@@ -88,7 +89,13 @@ LNI::CallbackReturn SocketCanSenderNode::on_deactivate(const lc::State & state)
 LNI::CallbackReturn SocketCanSenderNode::on_cleanup(const lc::State & state)
 {
   (void)state;
-  frames_sub_.reset();
+
+  if (!enable_fd_) {
+    frames_sub_.reset();
+  } else {
+    fd_frames_sub_.reset();
+  }
+
   RCLCPP_DEBUG(this->get_logger(), "Sender cleaned up.");
   return LNI::CallbackReturn::SUCCESS;
 }

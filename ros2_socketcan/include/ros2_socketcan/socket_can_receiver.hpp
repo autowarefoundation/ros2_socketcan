@@ -38,7 +38,7 @@ class SOCKETCAN_PUBLIC SocketCanReceiver
 {
 public:
   /// Constructor
-  explicit SocketCanReceiver(const std::string & interface = "can0");
+  explicit SocketCanReceiver(const bool enable_fd, const std::string & interface = "can0");
   /// Destructor
   ~SocketCanReceiver() noexcept;
 

@@ -32,10 +32,11 @@ namespace socketcan
 
 /// Bind a non-blocking CAN_RAW socket to the given interface
 /// \param[in] interface The name of the interface to bind, must be smaller than IFNAMSIZ
+/// \param[in] enable_fd Whether this socket uses CAN FD or not
 /// \return The file descriptor bound to the given interface
 /// \throw std::runtime_error If one of socket(), fnctl(), ioctl(), bind() failed
 /// \throw std::domain_error If the provided interface name is too long
-int32_t bind_can_socket(const std::string & interface);
+int32_t bind_can_socket(const std::string & interface, bool enable_fd);
 
 /// Set SocketCAN filters
 /// \param[in] fd File descriptor of the socket

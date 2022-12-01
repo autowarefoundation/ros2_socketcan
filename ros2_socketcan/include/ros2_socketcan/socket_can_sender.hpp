@@ -35,6 +35,7 @@ class SOCKETCAN_PUBLIC SocketCanSender
 public:
   /// Constructor
   explicit SocketCanSender(
+    const bool enable_fd,
     const std::string & interface = "can0",
     const CanId & default_id = CanId{});
   /// Destructor
