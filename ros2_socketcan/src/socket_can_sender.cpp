@@ -36,7 +36,8 @@ namespace socketcan
 SocketCanSender::SocketCanSender(
   const bool enable_fd, const std::string & interface,
   const CanId & default_id)
-: m_file_descriptor{bind_can_socket(interface, enable_fd)},
+: m_enable_fd(enable_fd),
+  m_file_descriptor{bind_can_socket(interface, m_enable_fd)},
   m_default_id{default_id}
 {
 }
@@ -122,6 +123,10 @@ void SocketCanSender::send_impl(
   const CanId id,
   const std::chrono::nanoseconds timeout) const
 {
+  if (m_enable_fd) {
+    throw std::runtime_error{"Tried to send standard frame from FD socket"};
+  }
+
   // Use select call on positive timeout
   wait(timeout);
   // Actually send the data
@@ -145,6 +150,10 @@ void SocketCanSender::send_fd_impl(
   const CanId id,
   const std::chrono::nanoseconds timeout) const
 {
+  if (!m_enable_fd) {
+    throw std::runtime_error{"Tried to send FD frame from standard socket"};
+  }
+
   // Use select call on positive timeout
   wait(timeout);
   // Actually send the data

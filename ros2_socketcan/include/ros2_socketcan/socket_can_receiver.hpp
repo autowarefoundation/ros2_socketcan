@@ -160,6 +160,7 @@ private:
   // Wait for file descriptor to be available to send data via select()
   SOCKETCAN_LOCAL void wait(const std::chrono::nanoseconds timeout) const;
 
+  bool m_enable_fd;
   int32_t m_file_descriptor;
 };  // class SocketCanReceiver
 

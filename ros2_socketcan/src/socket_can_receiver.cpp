@@ -38,7 +38,8 @@ namespace socketcan
 
 ////////////////////////////////////////////////////////////////////////////////
 SocketCanReceiver::SocketCanReceiver(const bool enable_fd, const std::string & interface)
-: m_file_descriptor{bind_can_socket(interface, enable_fd)}
+: m_enable_fd(enable_fd),
+  m_file_descriptor{bind_can_socket(interface, enable_fd)}
 {
 }
 
@@ -129,6 +130,10 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
 ////////////////////////////////////////////////////////////////////////////////
 CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanoseconds timeout) const
 {
+  if (m_enable_fd) {
+    throw std::runtime_error{"attempted to read standard frame from FD socket"};
+  }
+
   wait(timeout);
   // Read
   struct can_frame frame;
@@ -158,6 +163,10 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
 ////////////////////////////////////////////////////////////////////////////////
 CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanoseconds timeout) const
 {
+  if (!m_enable_fd) {
+    throw std::runtime_error{"attempted to read FD frame from standard socket"};
+  }
+
   wait(timeout);
   // Read
   struct canfd_frame frame;
