@@ -20,6 +20,7 @@
 #include <memory>
 #include <thread>
 #include <string>
+#include <vector>
 
 #include "ros2_socketcan/visibility_control.hpp"
 #include "ros2_socketcan/socket_can_receiver.hpp"

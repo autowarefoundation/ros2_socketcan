@@ -19,9 +19,11 @@
 
 #include <sys/select.h>
 #include <sys/time.h>
+#include <linux/can.h>
 
 #include <chrono>
 #include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -34,6 +36,24 @@ namespace socketcan
 /// \throw std::runtime_error If one of socket(), fnctl(), ioctl(), bind() failed
 /// \throw std::domain_error If the provided interface name is too long
 int32_t bind_can_socket(const std::string & interface);
+
+/// Set SocketCAN filters
+/// \param[in] fd File descriptor of the socket
+/// \param[in] f_list List of filters to be applied.
+/// \throw std::runtime_error If filters couldn't be applied
+void set_can_filter(int32_t fd, const std::vector<struct can_filter> & f_list);
+
+/// Set SocketCAN error filter
+/// \param[in] fd File descriptor of the socket
+/// \param[in] err_mask Error mask to be applied as a filter
+void set_can_err_filter(int32_t fd, can_err_mask_t err_mask);
+
+/// Set filters joining option for SocketCAN. If set, all filters
+/// must match for the frame to be passed.
+/// \param[in] fd File descriptor of the socket
+/// \param[in] join_filters Should the filters be joined?
+void set_can_filter_join(int32_t fd, bool join_filters);
+
 /// Convert std::chrono duration to timeval (with microsecond resolution)
 struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept;
 /// Convert timeval to time in microseconds

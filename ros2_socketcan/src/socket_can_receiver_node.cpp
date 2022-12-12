@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
@@ -36,6 +37,7 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
+  this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(interval_sec));
 
@@ -50,6 +52,10 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 
   try {
     receiver_ = std::make_unique<SocketCanReceiver>(interface_);
+    // apply CAN filters
+    auto filters = get_parameter("filters").as_string();
+    receiver_->SetCanFilters(SocketCanReceiver::CanFilterList(filters));
+    RCLCPP_INFO(get_logger(), "applied filters: %s", filters.c_str());
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(
       this->get_logger(), "Error opening CAN receiver: %s - %s",

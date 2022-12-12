@@ -29,6 +29,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace drivers
 {
@@ -73,6 +74,45 @@ int32_t bind_can_socket(const std::string & interface)
   //lint -restore NOLINT
 
   return file_descriptor;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void set_can_filter(int32_t fd, const std::vector<struct can_filter> & f_list)
+{
+  if (0 !=
+    setsockopt(
+      fd, SOL_CAN_RAW, CAN_RAW_FILTER, f_list.empty() ? NULL : f_list.data(),
+      sizeof(can_filter) * f_list.size()))
+  {
+    throw std::runtime_error{"Failed to set up CAN filters: " + std::string{strerror(errno)}};
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void set_can_err_filter(int32_t fd, can_err_mask_t err_mask)
+{
+  if (0 !=
+    setsockopt(
+      fd, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask,
+      sizeof(err_mask)))
+  {
+    throw std::runtime_error{"Failed to set up CAN error filters: " +
+            std::string{strerror(errno)}};
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void set_can_filter_join(int32_t fd, bool join_filters)
+{
+  auto join = static_cast<int>(join_filters);
+  if (0 !=
+    setsockopt(
+      fd, SOL_CAN_RAW, CAN_RAW_JOIN_FILTERS, &join,
+      sizeof(join)))
+  {
+    throw std::runtime_error{"Failed to set up joined CAN filters: " +
+            std::string{strerror(errno)}};
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

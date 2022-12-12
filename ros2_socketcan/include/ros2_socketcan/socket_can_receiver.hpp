@@ -18,10 +18,12 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_HPP_
 
+#include <linux/can.h>
 #include <array>
 #include <chrono>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "ros2_socketcan/visibility_control.hpp"
 #include "ros2_socketcan/socket_can_id.hpp"
@@ -39,6 +41,50 @@ public:
   explicit SocketCanReceiver(const std::string & interface = "can0");
   /// Destructor
   ~SocketCanReceiver() noexcept;
+
+  /// Structure containing possible CAN filter options.
+  struct CanFilterList
+  {
+    std::vector<struct can_filter> filters;
+    can_err_mask_t error_mask = 0;
+    bool join_filters = false;
+
+    /// Default constructor
+    CanFilterList() = default;
+
+
+    /// \copydoc ParseFilters(const std::string & str)
+    explicit CanFilterList(const char * str);
+
+
+    /// \copydoc ParseFilters(const std::string & str)
+    explicit CanFilterList(const std::string & str);
+
+    /// Parse CAN filters string:\n
+    /// Filters:\n
+    /// Comma separated filters can be specified for each given CAN interface.\n
+    /// <can_id>:<can_mask>\n
+    ///         (matches when <received_can_id> & mask == can_id & mask)\n
+    /// <can_id>~<can_mask>\n
+    ///         (matches when <received_can_id> & mask != can_id & mask)\n
+    /// #<error_mask>\n
+    ///         (set error frame filter, see include/linux/can/error.h)\n
+    /// [j|J]\n
+    ///         (join the given CAN filters - logical AND semantic)\n
+    ///
+    /// CAN IDs, masks and data content are given and expected in hexadecimal values.
+    /// When can_id and can_mask are both 8 digits, they are assumed to be 29 bit EFF.
+    /// \see https://manpages.ubuntu.com/manpages/jammy/man1/candump.1.html
+    /// \param[in] str Input to be parsed.
+    /// \return Populated CanFilterList structure.
+    /// \throw std::runtime_error if string couldn't be parsed.
+    static CanFilterList ParseFilters(const std::string & str);
+  };
+
+  /// Set SocketCAN filters
+  /// \param[in] filters List of filters to be applied.
+  /// \throw std::runtime_error If filters couldn't be applied
+  void SetCanFilters(const CanFilterList & filters);
 
   /// Receive CAN data
   /// \param[out] data A buffer to be written with data bytes. Must be at least 8 bytes in size
