@@ -74,6 +74,7 @@ public:
     ///
     /// CAN IDs, masks and data content are given and expected in hexadecimal values.
     /// When can_id and can_mask are both 8 digits, they are assumed to be 29 bit EFF.
+    /// \see https://manpages.ubuntu.com/manpages/jammy/man1/candump.1.html
     /// \param[in] str Input to be parsed.
     /// \return Populated CanFilterList structure.
     /// \throw std::runtime_error if string couldn't be parsed.

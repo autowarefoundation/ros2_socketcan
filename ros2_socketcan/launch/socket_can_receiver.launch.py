@@ -98,7 +98,10 @@ def generate_launch_description():
                                           'expected in hexadecimal values. When can_id and '
                                           'can_mask are both 8 digits, they are assumed to '
                                           "be 29 bit EFF. '0:0' default filter will accept "
-                                          'all data frames.'),
+                                          'all data frames.\n'
+                                          '\tFor more information about syntax check: '
+                                          'https://manpages.ubuntu.com/manpages/jammy/'
+                                          'man1/candump.1.html'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
         socket_can_receiver_node,
