@@ -171,7 +171,6 @@ void SocketCanReceiverNode::receive()
       frames_pub_->publish(std::move(frame_msg));
     }
   } else {
-    CanId fd_receive_id{};
     ros2_socketcan_msgs::msg::Frame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
     fd_frame_msg.header.frame_id = "can";
     fd_frame_msg.data.resize(64);
@@ -182,7 +181,7 @@ void SocketCanReceiverNode::receive()
         continue;
       }
       try {
-        fd_receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
+        receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
       } catch (const std::exception & ex) {
         RCLCPP_WARN_THROTTLE(
           this->get_logger(), *this->get_clock(), 1000,
@@ -195,7 +194,7 @@ void SocketCanReceiverNode::receive()
 
       if (use_bus_time_) {
         fd_frame_msg.header.stamp =
-          rclcpp::Time(static_cast<int64_t>(fd_receive_id.get_bus_time() * 1000U));
+          rclcpp::Time(static_cast<int64_t>(receive_id.get_bus_time() * 1000U));
       } else {
         fd_frame_msg.header.stamp = this->now();
       }
@@ -205,7 +204,7 @@ void SocketCanReceiverNode::receive()
       fd_frame_msg.is_extended = receive_id.is_extended();
       fd_frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
       fd_frame_msg.is_fd_frame = true;
-      fd_frame_msg.dlc = len_to_dlc(fd_receive_id.length());
+      fd_frame_msg.dlc = len_to_dlc(receive_id.length());
       fd_frames_pub_->publish(std::move(fd_frame_msg));
     }
   }
