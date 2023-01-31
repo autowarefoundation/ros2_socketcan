@@ -27,6 +27,8 @@
 #include <stdexcept>
 #include <string>
 
+#define ERR_AGAIN_RETRY_CNT 10
+
 namespace drivers
 {
 namespace socketcan
@@ -105,14 +107,21 @@ void SocketCanSender::wait(const std::chrono::nanoseconds timeout) const
 {
   if (decltype(timeout)::zero() < timeout) {
     auto c_timeout = to_timeval(timeout);
+    int retval;
     auto write_set = single_set(m_file_descriptor);
-    // Wait
-    if (0 == select(m_file_descriptor + 1, NULL, &write_set, NULL, &c_timeout)) {
+    retval = select(m_file_descriptor + 1, NULL, &write_set, NULL, &c_timeout);
+    // Check return value of the select function
+    if (0 == retval) {
       throw SocketCanTimeout{"CAN Send Timeout"};
-    }
-    //lint --e{9130, 9123, 9125, 1924, 9126} NOLINT
-    if (!FD_ISSET(m_file_descriptor, &write_set)) {
-      throw SocketCanTimeout{"CAN Send timeout"};
+    } else if (-1 == retval) {
+      // Output errno
+      throw std::runtime_error{strerror(errno)};
+    } else {
+      // Check file descriptor
+      //lint --e{9130, 1924, 9123, 9125, 1924, 9126} NOLINT
+      if (0 == FD_ISSET(m_file_descriptor, &write_set)) {
+        throw SocketCanTimeout{"File descriptor not set"};
+      }
     }
   }
 }
@@ -138,8 +147,30 @@ void SocketCanSender::send_impl(
   data_frame.can_dlc = static_cast<decltype(data_frame.can_dlc)>(length);
   //lint -e{586} NOLINT data_frame is a stack variable; guaranteed not to overlap
   (void)std::memcpy(static_cast<void *>(&data_frame.data[0U]), data, length);
-  const auto bytes_sent = ::send(m_file_descriptor, &data_frame, sizeof(data_frame), flags);
-  if (0 > bytes_sent) {
+
+  int number = 0;
+  ssize_t nbytes = 0;
+
+  struct can_frame * p = &data_frame;
+  ulong bytes_sent = 0;
+  while (bytes_sent < sizeof(data_frame) && -1 != nbytes) {
+    for (int i = 0; i < ERR_AGAIN_RETRY_CNT; i++) {
+      nbytes = ::send(
+        m_file_descriptor, (char *)p + bytes_sent, sizeof(data_frame) - bytes_sent,
+        flags);
+      if (-1 == nbytes) {
+        number = errno;
+        if (!(EAGAIN == (number) || EWOULDBLOCK == (number) || EINTR == (number))) {
+          break;
+        }
+      } else {
+        bytes_sent += nbytes;
+        break;
+      }
+    }
+  }
+  // Checks
+  if (-1 == nbytes) {
     throw std::runtime_error{strerror(errno)};
   }
 }
