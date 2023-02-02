@@ -72,7 +72,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
     frames_pub_ = this->create_publisher<can_msgs::msg::Frame>("from_can_bus", 500);
   } else {
     fd_frames_pub_ =
-      this->create_publisher<ros2_socketcan_msgs::msg::Frame>("from_can_bus_fd", 500);
+      this->create_publisher<ros2_socketcan_msgs::msg::FdFrame>("from_can_bus_fd", 500);
   }
 
   receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
@@ -171,7 +171,7 @@ void SocketCanReceiverNode::receive()
       frames_pub_->publish(std::move(frame_msg));
     }
   } else {
-    ros2_socketcan_msgs::msg::Frame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
+    ros2_socketcan_msgs::msg::FdFrame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
     fd_frame_msg.header.frame_id = "can";
     fd_frame_msg.data.resize(64);
 
@@ -200,11 +200,9 @@ void SocketCanReceiverNode::receive()
       }
 
       fd_frame_msg.id = receive_id.identifier();
-      fd_frame_msg.is_rtr = false;  // FD frames can't be remote frames
       fd_frame_msg.is_extended = receive_id.is_extended();
       fd_frame_msg.is_error = (receive_id.frame_type() == FrameType::ERROR);
-      fd_frame_msg.is_fd_frame = true;
-      fd_frame_msg.dlc = len_to_dlc(receive_id.length());
+      fd_frame_msg.len = receive_id.length();
       fd_frames_pub_->publish(std::move(fd_frame_msg));
     }
   }

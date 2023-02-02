@@ -30,7 +30,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rosidl_runtime_cpp/message_initialization.hpp"
 #include "can_msgs/msg/frame.hpp"
-#include "ros2_socketcan_msgs/msg/frame.hpp"
+#include "ros2_socketcan_msgs/msg/fd_frame.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
 namespace lc = rclcpp_lifecycle;
@@ -75,7 +75,7 @@ public:
 private:
   std::string interface_;
   std::shared_ptr<lc::LifecyclePublisher<can_msgs::msg::Frame>> frames_pub_;
-  std::shared_ptr<lc::LifecyclePublisher<ros2_socketcan_msgs::msg::Frame>> fd_frames_pub_;
+  std::shared_ptr<lc::LifecyclePublisher<ros2_socketcan_msgs::msg::FdFrame>> fd_frames_pub_;
   std::unique_ptr<SocketCanReceiver> receiver_;
   std::unique_ptr<std::thread> receiver_thread_;
   std::chrono::nanoseconds interval_ns_;

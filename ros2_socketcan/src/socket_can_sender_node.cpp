@@ -63,7 +63,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
     frames_sub_ = this->create_subscription<can_msgs::msg::Frame>(
       "to_can_bus", 500, std::bind(&SocketCanSenderNode::on_frame, this, std::placeholders::_1));
   } else {
-    fd_frames_sub_ = this->create_subscription<ros2_socketcan_msgs::msg::Frame>(
+    fd_frames_sub_ = this->create_subscription<ros2_socketcan_msgs::msg::FdFrame>(
       "to_can_bus_fd", 500, std::bind(
         &SocketCanSenderNode::on_fd_frame, this,
         std::placeholders::_1));
@@ -133,7 +133,7 @@ void SocketCanSenderNode::on_frame(const can_msgs::msg::Frame::SharedPtr msg)
   }
 }
 
-void SocketCanSenderNode::on_fd_frame(const ros2_socketcan_msgs::msg::Frame::SharedPtr msg)
+void SocketCanSenderNode::on_fd_frame(const ros2_socketcan_msgs::msg::FdFrame::SharedPtr msg)
 {
   if (this->get_current_state().id() == State::PRIMARY_STATE_ACTIVE) {
     FrameType type;
@@ -146,7 +146,7 @@ void SocketCanSenderNode::on_fd_frame(const ros2_socketcan_msgs::msg::Frame::Sha
     CanId send_id = msg->is_extended ? CanId(msg->id, 0, type, ExtendedFrame) :
       CanId(msg->id, 0, type, StandardFrame);
     try {
-      sender_->send_fd(msg->data.data<void>(), dlc_to_len(msg->dlc), send_id, timeout_ns_);
+      sender_->send_fd(msg->data.data<void>(), msg->len, send_id, timeout_ns_);
     } catch (const std::exception & ex) {
       RCLCPP_WARN_THROTTLE(
         this->get_logger(), *this->get_clock(), 1000,

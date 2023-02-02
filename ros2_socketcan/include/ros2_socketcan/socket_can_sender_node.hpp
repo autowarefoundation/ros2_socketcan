@@ -28,7 +28,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rosidl_runtime_cpp/message_initialization.hpp"
 #include "can_msgs/msg/frame.hpp"
-#include "ros2_socketcan_msgs/msg/frame.hpp"
+#include "ros2_socketcan_msgs/msg/fd_frame.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 
 namespace lc = rclcpp_lifecycle;
@@ -71,13 +71,13 @@ public:
   void on_frame(const can_msgs::msg::Frame::SharedPtr msg);
 
   /// \brief Callback for ros can fd frame.
-  void on_fd_frame(const ros2_socketcan_msgs::msg::Frame::SharedPtr msg);
+  void on_fd_frame(const ros2_socketcan_msgs::msg::FdFrame::SharedPtr msg);
 
 private:
   std::string interface_;
   bool enable_fd_;
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr frames_sub_;
-  rclcpp::Subscription<ros2_socketcan_msgs::msg::Frame>::SharedPtr fd_frames_sub_;
+  rclcpp::Subscription<ros2_socketcan_msgs::msg::FdFrame>::SharedPtr fd_frames_sub_;
   std::unique_ptr<SocketCanSender> sender_;
   std::chrono::nanoseconds timeout_ns_;
 };
