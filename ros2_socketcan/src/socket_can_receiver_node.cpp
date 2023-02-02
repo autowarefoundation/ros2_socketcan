@@ -173,13 +173,15 @@ void SocketCanReceiverNode::receive()
   } else {
     ros2_socketcan_msgs::msg::FdFrame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
     fd_frame_msg.header.frame_id = "can";
-    fd_frame_msg.data.resize(64);
 
     while (rclcpp::ok()) {
       if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
         std::this_thread::sleep_for(100ms);
         continue;
       }
+
+      fd_frame_msg.data.resize(64);
+
       try {
         receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
       } catch (const std::exception & ex) {
