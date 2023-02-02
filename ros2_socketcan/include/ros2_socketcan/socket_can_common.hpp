@@ -59,10 +59,6 @@ void set_can_filter_join(int32_t fd, bool join_filters);
 struct timeval to_timeval(const std::chrono::nanoseconds timeout) noexcept;
 /// Convert timeval to time in microseconds
 uint64_t from_timeval(const struct timeval tv) noexcept;
-/// Convert a DLC to a payload length
-uint8_t dlc_to_len(const uint8_t dlc) noexcept;
-/// convert a payload length to a DLC
-uint8_t len_to_dlc(const uint8_t len) noexcept;
 /// Create a fd_set for use with select() that only contains the specified file descriptor
 fd_set single_set(int32_t file_descriptor) noexcept;
 
