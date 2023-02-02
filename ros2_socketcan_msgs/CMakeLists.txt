@@ -15,7 +15,7 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Frame.msg"
+  "msg/FdFrame.msg"
   DEPENDENCIES std_msgs
   ADD_LINTER_TESTS
 )
