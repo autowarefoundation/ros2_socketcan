@@ -2,8 +2,8 @@
 Changelog for package ros2_socketcan_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2023-03-03)
+------------------
 * Add CAN FD Support (`#28 <https://github.com/autowarefoundation/ros2_socketcan/issues/28>`_)
   * Add FD support to ROS2 interface.
   * Add FD send/receive.
