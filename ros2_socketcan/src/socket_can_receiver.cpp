@@ -37,8 +37,9 @@ namespace socketcan
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-SocketCanReceiver::SocketCanReceiver(const std::string & interface)
-: m_file_descriptor{bind_can_socket(interface)}
+SocketCanReceiver::SocketCanReceiver(const std::string & interface, const bool enable_fd)
+: m_file_descriptor{bind_can_socket(interface, enable_fd)},
+  m_enable_fd(enable_fd)
 {
 }
 
@@ -129,6 +130,10 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
 ////////////////////////////////////////////////////////////////////////////////
 CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanoseconds timeout) const
 {
+  if (m_enable_fd) {
+    throw std::runtime_error{"attempted to read standard frame from FD socket"};
+  }
+
   wait(timeout);
   // Read
   struct can_frame frame;
@@ -145,6 +150,39 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
   }
   // Write
   const auto data_length = static_cast<CanId::LengthT>(frame.can_dlc);
+  (void)std::memcpy(data, static_cast<void *>(&frame.data[0U]), data_length);
+
+  // get bus timestamp
+  struct timeval tv;
+  ioctl(m_file_descriptor, SIOCGSTAMP, &tv);
+  uint64_t bus_time = from_timeval(tv);
+
+  return CanId{frame.can_id, bus_time, data_length};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanoseconds timeout) const
+{
+  if (!m_enable_fd) {
+    throw std::runtime_error{"attempted to read FD frame from standard socket"};
+  }
+
+  wait(timeout);
+  // Read
+  struct canfd_frame frame;
+  const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
+  // Checks
+  if (nbytes < 0) {
+    throw std::runtime_error{strerror(errno)};
+  }
+  if (static_cast<std::size_t>(nbytes) < sizeof(frame)) {
+    throw std::runtime_error{"read: incomplete CAN FD frame"};
+  }
+  if (static_cast<std::size_t>(nbytes) != sizeof(frame)) {
+    throw std::logic_error{"Message was wrong size"};
+  }
+  // Write
+  const auto data_length = static_cast<CanId::LengthT>(frame.len);
   (void)std::memcpy(data, static_cast<void *>(&frame.data[0U]), data_length);
 
   // get bus timestamp

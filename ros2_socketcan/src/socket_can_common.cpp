@@ -37,7 +37,7 @@ namespace socketcan
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-int32_t bind_can_socket(const std::string & interface)
+int32_t bind_can_socket(const std::string & interface, bool enable_fd)
 {
   if (interface.length() >= static_cast<std::string::size_type>(IFNAMSIZ)) {
     throw std::domain_error{"CAN interface name too long"};
@@ -72,6 +72,16 @@ int32_t bind_can_socket(const std::string & interface)
     throw std::runtime_error{"Failed to bind CAN socket"};
   }
   //lint -restore NOLINT
+
+  // Enable CAN FD support
+  const int32_t enable_canfd = enable_fd ? 1 : 0;
+  if (0 !=
+    setsockopt(
+      file_descriptor, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enable_canfd,
+      sizeof(enable_canfd)))
+  {
+    throw std::runtime_error{"Failed to enable CAN FD support"};
+  }
 
   return file_descriptor;
 }

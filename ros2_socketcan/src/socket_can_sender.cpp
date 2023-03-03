@@ -33,8 +33,12 @@ namespace socketcan
 {
 
 ////////////////////////////////////////////////////////////////////////////////
-SocketCanSender::SocketCanSender(const std::string & interface, const CanId & default_id)
-: m_file_descriptor{bind_can_socket(interface)},
+SocketCanSender::SocketCanSender(
+  const std::string & interface,
+  const bool enable_fd,
+  const CanId & default_id)
+: m_enable_fd(enable_fd),
+  m_file_descriptor{bind_can_socket(interface, m_enable_fd)},
   m_default_id{default_id}
 {
 }
@@ -75,6 +79,28 @@ void SocketCanSender::send(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+void SocketCanSender::send_fd(
+  const void * const data,
+  const std::size_t length,
+  const CanId id,
+  const std::chrono::nanoseconds timeout) const
+{
+  if (length > MAX_FD_DATA_LENGTH) {
+    throw std::domain_error{"Size is too large to send via CAN FD"};
+  }
+  send_fd_impl(data, length, id, timeout);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void SocketCanSender::send_fd(
+  const void * const data,
+  const std::size_t length,
+  const std::chrono::nanoseconds timeout) const
+{
+  send_fd(data, length, m_default_id, timeout);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 void SocketCanSender::wait(const std::chrono::nanoseconds timeout) const
 {
   if (decltype(timeout)::zero() < timeout) {
@@ -98,6 +124,10 @@ void SocketCanSender::send_impl(
   const CanId id,
   const std::chrono::nanoseconds timeout) const
 {
+  if (m_enable_fd) {
+    throw std::runtime_error{"Tried to send standard frame from FD socket"};
+  }
+
   // Use select call on positive timeout
   wait(timeout);
   // Actually send the data
@@ -106,6 +136,33 @@ void SocketCanSender::send_impl(
   data_frame.can_id = id.get();
   // User facing functions do check
   data_frame.can_dlc = static_cast<decltype(data_frame.can_dlc)>(length);
+  //lint -e{586} NOLINT data_frame is a stack variable; guaranteed not to overlap
+  (void)std::memcpy(static_cast<void *>(&data_frame.data[0U]), data, length);
+  const auto bytes_sent = ::send(m_file_descriptor, &data_frame, sizeof(data_frame), flags);
+  if (0 > bytes_sent) {
+    throw std::runtime_error{strerror(errno)};
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void SocketCanSender::send_fd_impl(
+  const void * const data,
+  const std::size_t length,
+  const CanId id,
+  const std::chrono::nanoseconds timeout) const
+{
+  if (!m_enable_fd) {
+    throw std::runtime_error{"Tried to send FD frame from standard socket"};
+  }
+
+  // Use select call on positive timeout
+  wait(timeout);
+  // Actually send the data
+  constexpr int flags = 0;  // TODO(c.ho) not implemented
+  struct canfd_frame data_frame;
+  data_frame.can_id = id.get();
+  // User facing functions do check
+  data_frame.len = static_cast<decltype(data_frame.len)>(length);
   //lint -e{586} NOLINT data_frame is a stack variable; guaranteed not to overlap
   (void)std::memcpy(static_cast<void *>(&data_frame.data[0U]), data, length);
   const auto bytes_sent = ::send(m_file_descriptor, &data_frame, sizeof(data_frame), flags);
