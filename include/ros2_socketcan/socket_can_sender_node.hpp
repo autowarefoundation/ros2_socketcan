@@ -29,6 +29,8 @@
 #include "rosidl_runtime_cpp/message_initialization.hpp"
 #include "can_msgs/msg/frame.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
+#include "bondcpp/bond.hpp"
+#include "bond/msg/constants.hpp"
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
@@ -69,11 +71,16 @@ public:
   /// \brief Callback for ros can frame.
   void on_frame(const can_msgs::msg::Frame::SharedPtr msg);
 
+  void create_bond();
+
+  void destroy_bond();
+
 private:
   std::string interface_;
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr frames_sub_;
   std::unique_ptr<SocketCanSender> sender_;
   std::chrono::nanoseconds timeout_ns_;
+  std::unique_ptr<bond::Bond> bond_{nullptr};
 };
 }  // namespace socketcan
 }  // namespace drivers

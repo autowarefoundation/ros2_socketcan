@@ -44,9 +44,33 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
 }
 
+void SocketCanReceiverNode::create_bond()
+{
+  RCLCPP_INFO(get_logger(), "Creating bond (%s) to lifecycle manager.", this->get_name());
+
+  bond_ = std::make_unique<bond::Bond>(
+    std::string("bond"),
+    this->get_name(),
+    shared_from_this());
+
+  bond_->setHeartbeatPeriod(0.10);
+  bond_->setHeartbeatTimeout(4.0);
+  bond_->start();
+}
+
+
+void SocketCanReceiverNode::destroy_bond()
+{
+  RCLCPP_INFO(get_logger(), "Destroying bond (%s) to lifecycle manager.", this->get_name());
+
+  if (bond_) {
+    bond_.reset();
+  }  
+}
+
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 {
-  (void)state;
+  //(void)state;
 
   try {
     receiver_ = std::make_unique<SocketCanReceiver>(interface_);
@@ -69,7 +93,8 @@ LNI::CallbackReturn SocketCanReceiverNode::on_activate(const lc::State & state)
 {
   (void)state;
   frames_pub_->on_activate();
-  RCLCPP_DEBUG(this->get_logger(), "Receiver activated.");
+  create_bond();
+  RCLCPP_WARN(this->get_logger(), "Receiver activated.");
   return LNI::CallbackReturn::SUCCESS;
 }
 
@@ -78,6 +103,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_deactivate(const lc::State & state
   (void)state;
   frames_pub_->on_deactivate();
   RCLCPP_DEBUG(this->get_logger(), "Receiver deactivated.");
+  destroy_bond();
   return LNI::CallbackReturn::SUCCESS;
 }
 
@@ -88,6 +114,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
   if (receiver_thread_->joinable()) {
     receiver_thread_->join();
   }
+  receiver_.reset();
   RCLCPP_DEBUG(this->get_logger(), "Receiver cleaned up.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -100,7 +127,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_shutdown(const lc::State & state)
 }
 
 void SocketCanReceiverNode::receive()
-{
+{ 
   CanId receive_id{};
   can_msgs::msg::Frame frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
   frame_msg.header.frame_id = "can";

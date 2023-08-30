@@ -30,6 +30,8 @@
 #include "rosidl_runtime_cpp/message_initialization.hpp"
 #include "can_msgs/msg/frame.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
+#include "bondcpp/bond.hpp"
+#include "bond/msg/constants.hpp"
 
 namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
@@ -70,6 +72,10 @@ public:
   /// \brief Callback for reading from hardware interface on timer tick.
   void receive();
 
+  void create_bond();
+
+  void destroy_bond();
+
 private:
   std::string interface_;
   std::shared_ptr<lc::LifecyclePublisher<can_msgs::msg::Frame>> frames_pub_;
@@ -77,6 +83,7 @@ private:
   std::unique_ptr<std::thread> receiver_thread_;
   std::chrono::nanoseconds interval_ns_;
   bool use_bus_time_;
+  std::unique_ptr<bond::Bond> bond_{nullptr};
 };
 }  // namespace socketcan
 }  // namespace drivers

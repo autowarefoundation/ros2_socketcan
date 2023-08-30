@@ -41,6 +41,30 @@ SocketCanSenderNode::SocketCanSenderNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "timeout(s): %f", timeout_sec);
 }
 
+
+void SocketCanSenderNode::create_bond()
+{
+  RCLCPP_INFO(get_logger(), "Creating bond (%s) to lifecycle manager.", this->get_name());
+
+  bond_ = std::make_unique<bond::Bond>(
+    std::string("bond"),
+    this->get_name(),
+    shared_from_this());
+
+  bond_->setHeartbeatPeriod(0.10);
+  bond_->setHeartbeatTimeout(4.0);
+  bond_->start();
+}
+
+void SocketCanSenderNode::destroy_bond()
+{
+  RCLCPP_INFO(get_logger(), "Destroying bond (%s) to lifecycle manager.", this->get_name());
+
+  if (bond_) {
+    bond_.reset();
+  }  
+} 
+
 LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
 {
   (void)state;
@@ -65,6 +89,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_activate(const lc::State & state)
 {
   (void)state;
   RCLCPP_DEBUG(this->get_logger(), "Sender activated.");
+  create_bond();
   return LNI::CallbackReturn::SUCCESS;
 }
 
@@ -72,6 +97,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_deactivate(const lc::State & state)
 {
   (void)state;
   RCLCPP_DEBUG(this->get_logger(), "Sender deactivated.");
+  destroy_bond();
   return LNI::CallbackReturn::SUCCESS;
 }
 
@@ -79,6 +105,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_cleanup(const lc::State & state)
 {
   (void)state;
   frames_sub_.reset();
+  sender_.reset();
   RCLCPP_DEBUG(this->get_logger(), "Sender cleaned up.");
   return LNI::CallbackReturn::SUCCESS;
 }
