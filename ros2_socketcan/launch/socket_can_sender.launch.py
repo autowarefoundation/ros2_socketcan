@@ -40,6 +40,7 @@ def generate_launch_description():
             'timeout_sec':
             LaunchConfiguration('timeout_sec'),
         }],
+        remappings=[('to_can_bus', LaunchConfiguration('to_can_bus_topic'))],
         output='screen')
 
     socket_can_sender_configure_event_handler = RegisterEventHandler(
@@ -80,6 +81,7 @@ def generate_launch_description():
         DeclareLaunchArgument('timeout_sec', default_value='0.01'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
+        DeclareLaunchArgument('to_can_bus_topic', default_value='to_can_bus'),
         socket_can_sender_node,
         socket_can_sender_configure_event_handler,
         socket_can_sender_activate_event_handler,
