@@ -13,6 +13,7 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
+find_package(can_msgs REQUIRED)
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/socket_can_common.cpp
