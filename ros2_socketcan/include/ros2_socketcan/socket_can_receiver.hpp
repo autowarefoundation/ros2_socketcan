@@ -21,6 +21,7 @@
 #include <linux/can.h>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>

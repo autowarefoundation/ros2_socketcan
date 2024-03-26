@@ -22,6 +22,7 @@
 #include <linux/can.h>
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 #include <vector>
 

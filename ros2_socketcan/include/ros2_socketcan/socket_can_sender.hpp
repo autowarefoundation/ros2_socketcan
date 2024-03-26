@@ -19,6 +19,7 @@
 #define ROS2_SOCKETCAN__SOCKET_CAN_SENDER_HPP_
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 
 #include "ros2_socketcan/visibility_control.hpp"
