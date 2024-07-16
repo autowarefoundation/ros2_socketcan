@@ -2,6 +2,10 @@
 Changelog for package ros2_socketcan_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.0 (2024-07-16)
+------------------
+* Jazzy release
+
 1.2.0 (2023-03-03)
 ------------------
 * Add CAN FD Support (`#28 <https://github.com/autowarefoundation/ros2_socketcan/issues/28>`_)
