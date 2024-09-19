@@ -171,13 +171,19 @@ CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanose
   // Read
   struct canfd_frame frame;
   const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
-  const auto data_length = static_cast<CanId::LengthT>(frame.len);
-  const auto expected_length = sizeof(frame) - sizeof(frame.data) + data_length;
 
   // Checks
   if (nbytes < 0) {
     throw std::runtime_error{strerror(errno)};
   }
+
+  if (static_cast<std::size_t>(nbytes) < sizeof(frame.can_id) + sizeof(frame.len)) {
+    throw std::runtime_error{"read: corrupted CAN frame"};
+  }
+
+  const auto data_length = static_cast<CanId::LengthT>(frame.len);
+  const auto expected_length = sizeof(frame) - sizeof(frame.data) + data_length; // some CAN FD frames are shorter than 64 bytes
+
   if (static_cast<std::size_t>(nbytes) < expected_length) {
     throw std::runtime_error{"read: incomplete CAN FD frame"};
   }
