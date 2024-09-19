@@ -182,7 +182,8 @@ CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanose
   }
 
   const auto data_length = static_cast<CanId::LengthT>(frame.len);
-  const auto expected_length = sizeof(frame) - sizeof(frame.data) + data_length; // some CAN FD frames are shorter than 64 bytes
+  // some CAN FD frames are shorter than 64 bytes
+  const auto expected_length = sizeof(frame) - sizeof(frame.data) + data_length;
 
   if (static_cast<std::size_t>(nbytes) < expected_length) {
     throw std::runtime_error{"read: incomplete CAN FD frame"};
