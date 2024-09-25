@@ -177,6 +177,10 @@ CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanose
     throw std::runtime_error{strerror(errno)};
   }
 
+  if (frame.len > CANFD_MAX_DLEN) {
+    throw std::runtime_error{"read: frame length is larger than max allowed CAN FD payload length"};
+  }
+
   if (static_cast<std::size_t>(nbytes) < sizeof(frame.can_id) + sizeof(frame.len)) {
     throw std::runtime_error{"read: corrupted CAN frame"};
   }
