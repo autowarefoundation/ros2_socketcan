@@ -18,7 +18,7 @@
 from launch import LaunchDescription
 from launch.actions import (DeclareLaunchArgument, EmitEvent,
                             RegisterEventHandler)
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessStart
 from launch.events import matches_action
 from launch.substitutions import LaunchConfiguration, TextSubstitution
@@ -40,7 +40,8 @@ def generate_launch_description():
             'timeout_sec':
             LaunchConfiguration('timeout_sec'),
         }],
-        remappings=[('to_can_bus', LaunchConfiguration('to_can_bus_topic'))],
+        remappings=[('to_can_bus', LaunchConfiguration('to_can_bus_topic')),
+                    ('to_can_bus_fd', LaunchConfiguration('to_can_bus_topic'))],
         output='screen')
 
     socket_can_sender_configure_event_handler = RegisterEventHandler(
@@ -81,7 +82,10 @@ def generate_launch_description():
         DeclareLaunchArgument('timeout_sec', default_value='0.01'),
         DeclareLaunchArgument('auto_configure', default_value='true'),
         DeclareLaunchArgument('auto_activate', default_value='true'),
-        DeclareLaunchArgument('to_can_bus_topic', default_value='to_can_bus'),
+        DeclareLaunchArgument('to_can_bus_topic', default_value='to_can_bus_fd',
+                              condition=IfCondition(LaunchConfiguration('enable_can_fd'))),
+        DeclareLaunchArgument('to_can_bus_topic', default_value='to_can_bus',
+                              condition=UnlessCondition(LaunchConfiguration('enable_can_fd'))),
         socket_can_sender_node,
         socket_can_sender_configure_event_handler,
         socket_can_sender_activate_event_handler,
