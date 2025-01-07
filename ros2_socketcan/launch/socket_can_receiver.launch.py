@@ -21,7 +21,7 @@ from launch.actions import (DeclareLaunchArgument, EmitEvent,
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessStart
 from launch.events import matches_action
-from launch.substitutions import LaunchConfiguration, TextSubstitution
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import LifecycleNode
 from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
@@ -33,7 +33,7 @@ def generate_launch_description():
         package='ros2_socketcan',
         executable='socket_can_receiver_node_exe',
         name='socket_can_receiver',
-        namespace=TextSubstitution(text=''),
+        namespace=LaunchConfiguration('namespace'),
         parameters=[{
             'interface': LaunchConfiguration('interface'),
             'enable_can_fd': LaunchConfiguration('enable_can_fd'),
@@ -79,6 +79,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument('namespace', default_value='',
+                              description='Namespace for the receiver node. Useful when '
+                                          'launching multiple receivers in one launch file.'),
         DeclareLaunchArgument('interface', default_value='can0'),
         DeclareLaunchArgument('enable_can_fd', default_value='false'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
