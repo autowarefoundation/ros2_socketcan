@@ -33,7 +33,7 @@ def generate_launch_description():
         package='ros2_socketcan',
         executable='socket_can_receiver_node_exe',
         name='socket_can_receiver',
-        namespace=TextSubstitution(text=''),
+        namespace=LaunchConfiguration('namespace'),
         parameters=[{
             'interface': LaunchConfiguration('interface'),
             'enable_can_fd': LaunchConfiguration('enable_can_fd'),
