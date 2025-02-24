@@ -39,6 +39,7 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
   enable_loopback_ = this->declare_parameter<bool>("enable_frame_loopback", false);
+  disable_warn_no_receive_ = this->declare_parameter<bool>("disable_warn_no_receive", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -153,10 +154,12 @@ void SocketCanReceiverNode::receive()
       try {
         receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
       } catch (const std::exception & ex) {
-        RCLCPP_WARN_THROTTLE(
-          this->get_logger(), *this->get_clock(), 1000,
-          "Error receiving CAN message: %s - %s",
-          interface_.c_str(), ex.what());
+        if (!disable_warn_no_receive_) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 1000,
+            "Error receiving CAN message: %s - %s",
+            interface_.c_str(), ex.what());
+          }
         continue;
       }
 
@@ -189,10 +192,12 @@ void SocketCanReceiverNode::receive()
       try {
         receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
       } catch (const std::exception & ex) {
-        RCLCPP_WARN_THROTTLE(
-          this->get_logger(), *this->get_clock(), 1000,
-          "Error receiving CAN FD message: %s - %s",
-          interface_.c_str(), ex.what());
+        if (!disable_warn_no_receive_) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 1000,
+            "Error receiving CAN message: %s - %s",
+            interface_.c_str(), ex.what());
+          }
         continue;
       }
 

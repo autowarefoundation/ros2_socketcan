@@ -82,6 +82,7 @@ private:
   bool enable_fd_;
   bool use_bus_time_;
   bool enable_loopback_;
+  bool disable_warn_no_receive_;
 };
 }  // namespace socketcan
 }  // namespace drivers
