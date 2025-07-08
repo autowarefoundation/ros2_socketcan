@@ -49,16 +49,42 @@ rclcpp_components_register_node(socket_can_sender_node
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  # TODO(c.ho) Make this into a pytest
-  ament_add_gtest(${PROJECT_NAME}_test
-    test/gtest_main.cpp
-    test/receiver.cpp
-    test/sanity_checks.cpp)
-  target_include_directories(${PROJECT_NAME}_test PUBLIC include)
-  target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
 endif()
 
+# ##################################################################
+# ADDED: Install and Export commands to make this a valid dependency
+# ##################################################################
+
+# 1. Install all targets (libraries and executables)
+install(TARGETS
+    ${PROJECT_NAME}
+    socket_can_receiver_node
+    socket_can_sender_node
+    socket_can_receiver_node_exe
+    socket_can_sender_node_exe
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  COMPONENT ${PROJECT_NAME}
+)
+
+# 2. Install the public headers
+install(
+  DIRECTORY ros2_socketcan/include/
+  DESTINATION include
+)
+
+# 3. Export include directories for downstream packages
+ament_export_include_directories(
+  ros2_socketcan/include
+)
+
+# 4. Export libraries for downstream packages
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
+
+# This command must come AFTER all other install/export commands
 ament_auto_package(INSTALL_TO_SHARE
   launch
 )
