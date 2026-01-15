@@ -39,7 +39,7 @@ protected:
   {
     constexpr auto test_interface = "vcan0";
     receiver_ = std::make_unique<SocketCanReceiver>(test_interface);
-    sender_ = std::make_unique<SocketCanSender>(test_interface);
+    sender_ = std::make_unique<SocketCanSender>(test_interface, false, false);
   }
 
   std::unique_ptr<SocketCanReceiver> receiver_{};

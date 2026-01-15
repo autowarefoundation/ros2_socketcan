@@ -38,6 +38,7 @@ public:
   explicit SocketCanSender(
     const std::string & interface = "can0",
     const bool enable_fd = false,
+    const bool enable_loopback = false,
     const CanId & default_id = CanId{});
   /// Destructor
   ~SocketCanSender() noexcept;

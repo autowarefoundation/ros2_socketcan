@@ -7,7 +7,7 @@
   <arg name="enable_frame_loopback" default="false" />
   <arg name="from_can_bus_topic" default="from_can_bus" />
   <arg name="to_can_bus_topic" default="to_can_bus" />
-  <arg name="filters" default="0:0" />
+  <arg name="filters" default="" />
   <arg name="use_bus_time" default="false" />
 
   <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_receiver.launch.py">
@@ -24,6 +24,7 @@
     <arg name="interface" value="$(var interface)" />
     <arg name="timeout_sec" value="$(var sender_timeout_sec)" />
     <arg name="enable_can_fd" value="$(var enable_can_fd)" />
+    <arg name="enable_frame_loopback" value="$(var enable_frame_loopback)" />
     <arg name="to_can_bus_topic" value="$(var to_can_bus_topic)" />
   </include>
 

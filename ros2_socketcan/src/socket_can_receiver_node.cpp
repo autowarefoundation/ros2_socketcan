@@ -40,7 +40,7 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
   enable_loopback_ = this->declare_parameter<bool>("enable_frame_loopback", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
-  this->declare_parameter("filters", "0:0");
+  this->declare_parameter("filters", "");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(interval_sec));
 

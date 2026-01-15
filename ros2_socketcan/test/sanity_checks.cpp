@@ -120,7 +120,7 @@ protected:
   void SetUp()
   {
     constexpr auto TEST_INTERFACE = "vcan0";
-    sender_ = std::make_unique<SocketCanSender>(TEST_INTERFACE);
+    sender_ = std::make_unique<SocketCanSender>(TEST_INTERFACE, false, false);
     // Set up file descriptor
     file_descriptor_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     fcntl(file_descriptor_, F_SETFL, O_NONBLOCK);
