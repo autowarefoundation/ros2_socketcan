@@ -38,7 +38,6 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
-  enable_loopback_ = this->declare_parameter<bool>("enable_frame_loopback", false);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -47,9 +46,6 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
   RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
-  RCLCPP_INFO(
-    this->get_logger(), "frame loopback enabled: %s",
-    enable_loopback_ ? "true" : "false");
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
 }
 
@@ -58,7 +54,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   (void)state;
 
   try {
-    receiver_ = std::make_unique<SocketCanReceiver>(interface_, enable_fd_, enable_loopback_);
+    receiver_ = std::make_unique<SocketCanReceiver>(interface_, enable_fd_);
     // apply CAN filters
     auto filters = get_parameter("filters").as_string();
     receiver_->SetCanFilters(SocketCanReceiver::CanFilterList(filters));

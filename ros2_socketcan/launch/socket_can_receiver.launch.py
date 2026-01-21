@@ -37,7 +37,6 @@ def generate_launch_description():
         parameters=[{
             'interface': LaunchConfiguration('interface'),
             'enable_can_fd': LaunchConfiguration('enable_can_fd'),
-            'enable_frame_loopback': LaunchConfiguration('enable_frame_loopback'),
             'interval_sec':
             LaunchConfiguration('interval_sec'),
             'filters': LaunchConfiguration('filters'),
@@ -82,7 +81,6 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('interface', default_value='can0'),
         DeclareLaunchArgument('enable_can_fd', default_value='false'),
-        DeclareLaunchArgument('enable_frame_loopback', default_value='false'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
         DeclareLaunchArgument('use_bus_time', default_value='false'),
         DeclareLaunchArgument('filters', default_value='0:0',

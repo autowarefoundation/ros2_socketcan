@@ -76,6 +76,7 @@ public:
 private:
   std::string interface_;
   bool enable_fd_;
+  bool enable_loopback_;
   rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr frames_sub_;
   rclcpp::Subscription<ros2_socketcan_msgs::msg::FdFrame>::SharedPtr fd_frames_sub_;
   std::unique_ptr<SocketCanSender> sender_;
