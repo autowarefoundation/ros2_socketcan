@@ -9,6 +9,8 @@
 
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
+  <depend condition="$ENABLE_AGNOCAST == 1">agnocast_cie_thread_configurator</depend>
+  <depend condition="$ENABLE_AGNOCAST == 1">agnocast_components</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
   <depend>rclcpp_lifecycle</depend>
