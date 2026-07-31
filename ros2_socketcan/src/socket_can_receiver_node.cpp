@@ -65,6 +65,13 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
 }
 
+SocketCanReceiverNode::~SocketCanReceiverNode()
+{
+  if (receiver_thread_ && receiver_thread_->joinable()) {
+    receiver_thread_->join();
+  }
+}
+
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 {
   (void)state;
@@ -142,7 +149,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
     fd_frames_pub_.reset();
   }
 
-  if (receiver_thread_->joinable()) {
+  if (receiver_thread_ && receiver_thread_->joinable()) {
     receiver_thread_->join();
   }
   RCLCPP_DEBUG(this->get_logger(), "Receiver cleaned up.");

@@ -49,6 +49,11 @@ public:
   /// \brief Default constructor
   explicit SocketCanReceiverNode(rclcpp::NodeOptions options);
 
+  /// \brief Destructor. Joins the receiver thread if it is still joinable, since destroying a
+  /// joinable std::thread calls std::terminate(). This happens on plain shutdown (e.g. SIGINT),
+  /// where the lifecycle node is destroyed without transitioning through "cleanup".
+  ~SocketCanReceiverNode() override;
+
   /// \brief Callback from transition to "configuring" state.
   /// \param[in] state The current state that the node is in.
   LNI::CallbackReturn on_configure(const lc::State & state) override;
