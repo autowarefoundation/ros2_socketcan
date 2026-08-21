@@ -1,0 +1,20 @@
+name: mirror-jazzy-to-humble
+
+on:
+  push:
+    branches:
+      - jazzy
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mirror-jazzy-to-humble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: zofrex/mirror-branch@v1
+        with:
+          target-branch: humble
+          force: false
