@@ -1,0 +1,37 @@
+name: vcan test
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  vcan_test:
+    runs-on: ubuntu-26.04
+    container:
+      image: rostooling/setup-ros-docker:ubuntu-resolute-ros-lyrical-ros-base-latest
+      options: --cap-add NET_ADMIN
+    steps:
+      - name: checkout
+        uses: actions/checkout@v7
+        with:
+          path: ros_ws/src
+
+      - name: create vcan0
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq iproute2
+          ip link add dev vcan0 type vcan
+          ip link set up vcan0
+
+      - name: build and test
+        uses: ros-tooling/action-ros-ci@master
+        env:
+          ROS2_SOCKETCAN_REQUIRE_VCAN0: "1"
+        with:
+          package-name: ros2_socketcan ros2_socketcan_msgs
+          target-ros2-distro: lyrical
+          vcs-repo-file-url: ""
