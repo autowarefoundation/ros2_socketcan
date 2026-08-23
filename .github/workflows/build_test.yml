@@ -1,9 +1,11 @@
 name: ROS2 CI
 
 on:
+  push:
+    branches:
+      - 'main'
   pull_request:
     branches:
-      - 'develop'
       - 'main'
 
 jobs:
@@ -14,14 +16,19 @@ jobs:
       matrix:
         ros_distribution:
           - kilted
+          - lyrical
           - rolling
         include:
           # Kilted Kaiju (May 2025 - December 2026)
           - docker_image: rostooling/setup-ros-docker:ubuntu-noble-ros-kilted-ros-base-latest
             ros_distribution: kilted
             ros_version: 2
+          # Lyrical Luth (May 2026 - May 2031)
+          - docker_image: rostooling/setup-ros-docker:ubuntu-resolute-ros-lyrical-ros-base-latest
+            ros_distribution: lyrical
+            ros_version: 2
           # Rolling Ridley  (June 2020 - Present)
-          - docker_image: rostooling/setup-ros-docker:ubuntu-noble-ros-rolling-ros-base-latest
+          - docker_image: rostooling/setup-ros-docker:ubuntu-resolute-ros-rolling-ros-base-latest
             ros_distribution: rolling
             ros_version: 2
     container:
@@ -30,7 +37,7 @@ jobs:
       - name: setup directories
         run: mkdir -p ros_ws/src
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           path: ros_ws/src
       - name: build and test
