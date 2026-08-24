@@ -166,7 +166,7 @@ void SocketCanReceiverNode::receive()
             this->get_logger(), *this->get_clock(), 1000,
             "Error receiving CAN message: %s - %s",
             interface_.c_str(), ex.what());
-          }
+        }
         continue;
       }
 
@@ -202,9 +202,9 @@ void SocketCanReceiverNode::receive()
         if (!disable_warn_no_receive_) {
           RCLCPP_WARN_THROTTLE(
             this->get_logger(), *this->get_clock(), 1000,
-            "Error receiving CAN message: %s - %s",
+            "Error receiving CAN FD message: %s - %s",
             interface_.c_str(), ex.what());
-          }
+        }
         continue;
       }
 
