@@ -65,6 +65,20 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
 }
 
+SocketCanReceiverNode::~SocketCanReceiverNode()
+{
+  stop_receiver_thread();
+}
+
+void SocketCanReceiverNode::stop_receiver_thread()
+{
+  stop_thread_ = true;
+  if (receiver_thread_ && receiver_thread_->joinable()) {
+    receiver_thread_->join();
+  }
+  receiver_thread_.reset();
+}
+
 LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 {
   (void)state;
@@ -90,6 +104,8 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
     fd_frames_pub_ =
       this->create_publisher<ros2_socketcan_msgs::msg::FdFrame>("from_can_bus_fd", 500);
   }
+
+  stop_thread_ = false;
 
 #ifdef USE_AGNOCAST_ENABLED
   const std::string thread_name = "socket_can_receiver:" + interface_ + ":receiver_thread";
@@ -136,15 +152,14 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
 {
   (void)state;
 
+  stop_receiver_thread();
+
   if (!enable_fd_) {
     frames_pub_.reset();
   } else {
     fd_frames_pub_.reset();
   }
 
-  if (receiver_thread_->joinable()) {
-    receiver_thread_->join();
-  }
   RCLCPP_DEBUG(this->get_logger(), "Receiver cleaned up.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -152,6 +167,9 @@ LNI::CallbackReturn SocketCanReceiverNode::on_cleanup(const lc::State & state)
 LNI::CallbackReturn SocketCanReceiverNode::on_shutdown(const lc::State & state)
 {
   (void)state;
+
+  stop_receiver_thread();
+
   RCLCPP_DEBUG(this->get_logger(), "Receiver shutting down.");
   return LNI::CallbackReturn::SUCCESS;
 }
@@ -164,7 +182,7 @@ void SocketCanReceiverNode::receive()
     can_msgs::msg::Frame frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
     frame_msg.header.frame_id = "can";
 
-    while (rclcpp::ok()) {
+    while (rclcpp::ok() && !stop_thread_) {
       if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
         std::this_thread::sleep_for(100ms);
         continue;
@@ -198,7 +216,7 @@ void SocketCanReceiverNode::receive()
     ros2_socketcan_msgs::msg::FdFrame fd_frame_msg(rosidl_runtime_cpp::MessageInitialization::ZERO);
     fd_frame_msg.header.frame_id = "can";
 
-    while (rclcpp::ok()) {
+    while (rclcpp::ok() && !stop_thread_) {
       if (this->get_current_state().id() != State::PRIMARY_STATE_ACTIVE) {
         std::this_thread::sleep_for(100ms);
         continue;
