@@ -97,6 +97,12 @@ if(BUILD_TESTING)
     test/sanity_checks.cpp)
   target_include_directories(${PROJECT_NAME}_test PUBLIC include)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
+
+  ament_add_gtest(${PROJECT_NAME}_node_destruction_test
+    test/gtest_main.cpp
+    test/node_destruction.cpp)
+  target_compile_features(${PROJECT_NAME}_node_destruction_test PRIVATE cxx_std_17)
+  target_link_libraries(${PROJECT_NAME}_node_destruction_test socket_can_receiver_node)
 endif()
 
 ament_auto_package(
