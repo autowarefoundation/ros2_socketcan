@@ -54,7 +54,7 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
-  disable_warn_no_receive_ = this->declare_parameter<bool>("disable_warn_no_receive", false);
+  warn_on_receive_timeout_ = this->declare_parameter<bool>("warn_on_receive_timeout", true);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -192,7 +192,7 @@ void SocketCanReceiverNode::receive()
       try {
         receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
       } catch (const SocketCanTimeout &) {
-        if (!disable_warn_no_receive_) {
+        if (warn_on_receive_timeout_) {
           RCLCPP_WARN_THROTTLE(
             this->get_logger(), *this->get_clock(), 1000,
             "No CAN frame received on %s within %.3f s",
@@ -236,7 +236,7 @@ void SocketCanReceiverNode::receive()
       try {
         receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
       } catch (const SocketCanTimeout &) {
-        if (!disable_warn_no_receive_) {
+        if (warn_on_receive_timeout_) {
           RCLCPP_WARN_THROTTLE(
             this->get_logger(), *this->get_clock(), 1000,
             "No CAN FD frame received on %s within %.3f s",
