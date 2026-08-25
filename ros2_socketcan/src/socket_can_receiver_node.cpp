@@ -191,13 +191,19 @@ void SocketCanReceiverNode::receive()
 
       try {
         receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
-      } catch (const std::exception & ex) {
+      } catch (const SocketCanTimeout &) {
         if (!disable_warn_no_receive_) {
           RCLCPP_WARN_THROTTLE(
             this->get_logger(), *this->get_clock(), 1000,
-            "Error receiving CAN message: %s - %s",
-            interface_.c_str(), ex.what());
+            "No CAN frame received on %s within %.3f s",
+            interface_.c_str(), std::chrono::duration<double>(interval_ns_).count());
         }
+        continue;
+      } catch (const std::exception & ex) {
+        RCLCPP_WARN_THROTTLE(
+          this->get_logger(), *this->get_clock(), 1000,
+          "Error receiving CAN message: %s - %s",
+          interface_.c_str(), ex.what());
         continue;
       }
 
@@ -229,13 +235,19 @@ void SocketCanReceiverNode::receive()
 
       try {
         receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
-      } catch (const std::exception & ex) {
+      } catch (const SocketCanTimeout &) {
         if (!disable_warn_no_receive_) {
           RCLCPP_WARN_THROTTLE(
             this->get_logger(), *this->get_clock(), 1000,
-            "Error receiving CAN FD message: %s - %s",
-            interface_.c_str(), ex.what());
+            "No CAN FD frame received on %s within %.3f s",
+            interface_.c_str(), std::chrono::duration<double>(interval_ns_).count());
         }
+        continue;
+      } catch (const std::exception & ex) {
+        RCLCPP_WARN_THROTTLE(
+          this->get_logger(), *this->get_clock(), 1000,
+          "Error receiving CAN FD message: %s - %s",
+          interface_.c_str(), ex.what());
         continue;
       }
 
