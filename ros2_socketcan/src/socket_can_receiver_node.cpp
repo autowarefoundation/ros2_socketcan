@@ -64,6 +64,9 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
   RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
+  RCLCPP_INFO(
+    this->get_logger(), "warn on receive timeout: %s",
+    warn_on_receive_timeout_ ? "true" : "false");
 }
 
 SocketCanReceiverNode::~SocketCanReceiverNode()
