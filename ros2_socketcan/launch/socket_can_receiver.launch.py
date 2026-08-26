@@ -41,6 +41,7 @@ def generate_launch_description():
             LaunchConfiguration('interval_sec'),
             'filters': LaunchConfiguration('filters'),
             'use_bus_time': LaunchConfiguration('use_bus_time'),
+            'warn_on_receive_timeout': LaunchConfiguration('warn_on_receive_timeout'),
         }],
         remappings=[('from_can_bus', LaunchConfiguration('from_can_bus_topic')),
                     ('from_can_bus_fd', LaunchConfiguration('from_can_bus_topic'))],
@@ -83,6 +84,11 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_can_fd', default_value='false'),
         DeclareLaunchArgument('interval_sec', default_value='0.01'),
         DeclareLaunchArgument('use_bus_time', default_value='false'),
+        DeclareLaunchArgument('warn_on_receive_timeout', default_value='true',
+                              description='Warn when no CAN frame arrives within '
+                                          'interval_sec. Set to false on a bus that is '
+                                          'idle by design. Real receive errors are '
+                                          'always logged, whatever this value is.'),
         DeclareLaunchArgument('filters', default_value='0:0',
                               description='Comma separated filters can be specified for each given'
                                           ' CAN interface.\n'

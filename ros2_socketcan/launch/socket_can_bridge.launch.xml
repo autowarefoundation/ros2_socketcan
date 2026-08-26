@@ -9,6 +9,7 @@
   <arg name="to_can_bus_topic" default="to_can_bus" />
   <arg name="filters" default="0:0" />
   <arg name="use_bus_time" default="false" />
+  <arg name="warn_on_receive_timeout" default="true" />
 
   <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_receiver.launch.py">
     <arg name="interface" value="$(var interface)" />
@@ -17,6 +18,7 @@
     <arg name="from_can_bus_topic" value="$(var from_can_bus_topic)" />
     <arg name="filters" value="$(var filters)" />
     <arg name="use_bus_time" value="$(var use_bus_time)" />
+    <arg name="warn_on_receive_timeout" value="$(var warn_on_receive_timeout)" />
   </include>
 
   <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_sender.launch.py">
