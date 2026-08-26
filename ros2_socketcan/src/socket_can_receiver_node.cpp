@@ -54,6 +54,7 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   interface_ = this->declare_parameter("interface", "can0");
   use_bus_time_ = this->declare_parameter<bool>("use_bus_time", false);
   enable_fd_ = this->declare_parameter<bool>("enable_can_fd", false);
+  warn_on_receive_timeout_ = this->declare_parameter<bool>("warn_on_receive_timeout", true);
   double interval_sec = this->declare_parameter("interval_sec", 0.01);
   this->declare_parameter("filters", "0:0");
   interval_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -63,6 +64,9 @@ SocketCanReceiverNode::SocketCanReceiverNode(rclcpp::NodeOptions options)
   RCLCPP_INFO(this->get_logger(), "use bus time: %d", use_bus_time_);
   RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
   RCLCPP_INFO(this->get_logger(), "interval(s): %f", interval_sec);
+  RCLCPP_INFO(
+    this->get_logger(), "warn on receive timeout: %s",
+    warn_on_receive_timeout_ ? "true" : "false");
 }
 
 SocketCanReceiverNode::~SocketCanReceiverNode()
@@ -190,6 +194,14 @@ void SocketCanReceiverNode::receive()
 
       try {
         receive_id = receiver_->receive(frame_msg.data.data(), interval_ns_);
+      } catch (const SocketCanTimeout &) {
+        if (warn_on_receive_timeout_) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 1000,
+            "No CAN frame received on %s within %.3f s",
+            interface_.c_str(), std::chrono::duration<double>(interval_ns_).count());
+        }
+        continue;
       } catch (const std::exception & ex) {
         RCLCPP_WARN_THROTTLE(
           this->get_logger(), *this->get_clock(), 1000,
@@ -226,6 +238,14 @@ void SocketCanReceiverNode::receive()
 
       try {
         receive_id = receiver_->receive_fd(fd_frame_msg.data.data<void>(), interval_ns_);
+      } catch (const SocketCanTimeout &) {
+        if (warn_on_receive_timeout_) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 1000,
+            "No CAN FD frame received on %s within %.3f s",
+            interface_.c_str(), std::chrono::duration<double>(interval_ns_).count());
+        }
+        continue;
       } catch (const std::exception & ex) {
         RCLCPP_WARN_THROTTLE(
           this->get_logger(), *this->get_clock(), 1000,
