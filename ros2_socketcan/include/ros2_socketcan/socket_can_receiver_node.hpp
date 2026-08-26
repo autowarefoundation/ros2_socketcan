@@ -91,7 +91,7 @@ private:
   std::chrono::nanoseconds interval_ns_;
   bool enable_fd_;
   bool use_bus_time_;
-  bool disable_warn_no_receive_;
+  bool warn_on_receive_timeout_;
 };
 }  // namespace socketcan
 }  // namespace drivers
