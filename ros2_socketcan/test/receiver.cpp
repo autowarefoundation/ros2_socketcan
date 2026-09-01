@@ -17,8 +17,11 @@
 #include <gtest/gtest.h>
 #include <linux/can/error.h>
 
+#include <array>
 #include <chrono>
+#include <cstdlib>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include "ros2_socketcan/socket_can_receiver.hpp"
@@ -26,6 +29,7 @@
 
 using drivers::socketcan::SocketCanReceiver;
 using drivers::socketcan::SocketCanSender;
+using drivers::socketcan::SocketCanTimeout;
 using drivers::socketcan::CanId;
 using drivers::socketcan::StandardFrame;
 using drivers::socketcan::ExtendedFrame;
@@ -384,4 +388,41 @@ TEST_F(DISABLED_receiver, can_filters)
       EXPECT_EQ(send_id.frame_type(), FrameType::REMOTE);
     }
   }
+}
+
+// Runs where vcan0 exists. CI creates it in .github/workflows/vcan_test.yml
+class vcan0_timeout : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    constexpr auto test_interface = "vcan0";
+    try {
+      receiver_ = std::make_unique<SocketCanReceiver>(test_interface);
+      fd_receiver_ = std::make_unique<SocketCanReceiver>(test_interface, true);
+    } catch (const std::exception &) {
+      if (std::getenv("ROS2_SOCKETCAN_REQUIRE_VCAN0") != nullptr) {
+        FAIL() << "vcan0 is required by ROS2_SOCKETCAN_REQUIRE_VCAN0 but not available";
+      }
+      GTEST_SKIP() << "vcan0 is not available";
+    }
+    // An empty filter list drops every frame, so traffic from other tests cannot reach the sockets
+    receiver_->SetCanFilters(SocketCanReceiver::CanFilterList{});
+    fd_receiver_->SetCanFilters(SocketCanReceiver::CanFilterList{});
+  }
+
+  std::unique_ptr<SocketCanReceiver> receiver_{};
+  std::unique_ptr<SocketCanReceiver> fd_receiver_{};
+};
+
+TEST_F(vcan0_timeout, receive_without_pending_frame)
+{
+  const auto zero = std::chrono::nanoseconds::zero();
+  const std::chrono::milliseconds one_ms{1LL};
+  std::array<uint8_t, drivers::socketcan::MAX_FD_DATA_LENGTH> data{};
+
+  EXPECT_THROW(receiver_->receive(data.data(), zero), SocketCanTimeout);
+  EXPECT_THROW(receiver_->receive(data.data(), one_ms), SocketCanTimeout);
+  EXPECT_THROW(fd_receiver_->receive_fd(data.data(), zero), SocketCanTimeout);
+  EXPECT_THROW(fd_receiver_->receive_fd(data.data(), one_ms), SocketCanTimeout);
 }
