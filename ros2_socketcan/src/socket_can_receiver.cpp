@@ -171,18 +171,28 @@ CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanose
   // Read
   struct canfd_frame frame;
   const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
+
   // Checks
   if (nbytes < 0) {
     throw std::runtime_error{strerror(errno)};
   }
-  if (static_cast<std::size_t>(nbytes) < sizeof(frame)) {
+
+  if (static_cast<std::size_t>(nbytes) < sizeof(frame.can_id) + sizeof(frame.len)) {
+    throw std::runtime_error{"read: corrupted CAN frame"};
+  }
+
+  if (frame.len > CANFD_MAX_DLEN) {
+    throw std::runtime_error{"read: frame length is larger than max allowed CAN FD payload length"};
+  }
+
+  const auto data_length = static_cast<CanId::LengthT>(frame.len);
+  // some CAN FD frames are shorter than 64 bytes
+  const auto expected_length = sizeof(frame) - sizeof(frame.data) + data_length;
+
+  if (static_cast<std::size_t>(nbytes) < expected_length) {
     throw std::runtime_error{"read: incomplete CAN FD frame"};
   }
-  if (static_cast<std::size_t>(nbytes) != sizeof(frame)) {
-    throw std::logic_error{"Message was wrong size"};
-  }
   // Write
-  const auto data_length = static_cast<CanId::LengthT>(frame.len);
   (void)std::memcpy(data, static_cast<void *>(&frame.data[0U]), data_length);
 
   // get bus timestamp
