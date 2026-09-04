@@ -35,7 +35,8 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
   src/socket_can_common.cpp
   src/socket_can_id.cpp
   src/socket_can_receiver.cpp
-  src/socket_can_sender.cpp)
+  src/socket_can_sender.cpp
+  src/socket_can_transceiver.cpp)
 
 ament_auto_add_library(socket_can_receiver_node SHARED
   src/socket_can_receiver_node.cpp
