@@ -2,9 +2,6 @@ name: ROS2 CI
 
 on:
   pull_request:
-    branches:
-      - 'humble'
-      - 'jazzy'
 
 jobs:
   test_environment:
