@@ -17,6 +17,7 @@
 #ifndef ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_NODE_HPP_
 #define ROS2_SOCKETCAN__SOCKET_CAN_RECEIVER_NODE_HPP_
 
+#include <atomic>
 #include <memory>
 #include <thread>
 #include <string>
@@ -49,6 +50,11 @@ public:
   /// \brief Default constructor
   explicit SocketCanReceiverNode(rclcpp::NodeOptions options);
 
+  /// \brief Destructor. Stops and joins the receiver thread, since destroying a joinable
+  /// std::thread calls std::terminate(). Needed on plain shutdown (e.g. SIGINT), where the
+  /// lifecycle node is destroyed without transitioning through "cleanup".
+  ~SocketCanReceiverNode() override;
+
   /// \brief Callback from transition to "configuring" state.
   /// \param[in] state The current state that the node is in.
   LNI::CallbackReturn on_configure(const lc::State & state) override;
@@ -73,11 +79,15 @@ public:
   void receive();
 
 private:
+  /// \brief Stop the receiver thread and join it if it exists.
+  void stop_receiver_thread();
+
   std::string interface_;
   std::shared_ptr<lc::LifecyclePublisher<can_msgs::msg::Frame>> frames_pub_;
   std::shared_ptr<lc::LifecyclePublisher<ros2_socketcan_msgs::msg::FdFrame>> fd_frames_pub_;
   std::unique_ptr<SocketCanReceiver> receiver_;
   std::unique_ptr<std::thread> receiver_thread_;
+  std::atomic<bool> stop_thread_{false};
   std::chrono::nanoseconds interval_ns_;
   bool enable_fd_;
   bool use_bus_time_;
