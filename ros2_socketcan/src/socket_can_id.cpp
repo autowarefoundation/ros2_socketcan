@@ -136,8 +136,13 @@ CanId & CanId::identifier(const IdT id)
   constexpr auto MAX_STANDARD = 0x07EFU;
   static_assert(MAX_EXTENDED <= EXTENDED_ID_MASK, "Max extended id value is wrong");
   static_assert(MAX_STANDARD <= STANDARD_ID_MASK, "Max extended id value is wrong");
-  const auto max_id = is_extended() ? MAX_EXTENDED : MAX_STANDARD;
-  if (max_id < id) {
+  auto max_id = MAX_STANDARD;
+  auto unmasked_id = id;
+  if (is_extended()) {
+    max_id = MAX_EXTENDED;
+    unmasked_id = id & ~(EXTENDED_MASK);
+  }
+  if (max_id < unmasked_id) {
     throw std::domain_error{"CanId would be truncated!"};
   }
   // Clear and set
