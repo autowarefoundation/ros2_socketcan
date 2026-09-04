@@ -35,12 +35,16 @@ SocketCanSenderNode::SocketCanSenderNode(rclcpp::NodeOptions options)
 {
   interface_ = this->declare_parameter("interface", "can0");
   enable_fd_ = this->declare_parameter("enable_can_fd", false);
+  enable_loopback_ = this->declare_parameter<bool>("enable_frame_loopback", false);
   double timeout_sec = this->declare_parameter("timeout_sec", 0.01);
   timeout_ns_ = std::chrono::duration_cast<std::chrono::nanoseconds>(
     std::chrono::duration<double>(timeout_sec));
 
   RCLCPP_INFO(this->get_logger(), "interface: %s", interface_.c_str());
   RCLCPP_INFO(this->get_logger(), "can fd enabled: %s", enable_fd_ ? "true" : "false");
+  RCLCPP_INFO(
+    this->get_logger(), "frame loopback enabled: %s",
+    enable_loopback_ ? "true" : "false");
   RCLCPP_INFO(this->get_logger(), "timeout(s): %f", timeout_sec);
 }
 
@@ -49,7 +53,7 @@ LNI::CallbackReturn SocketCanSenderNode::on_configure(const lc::State & state)
   (void)state;
 
   try {
-    sender_ = std::make_unique<SocketCanSender>(interface_, enable_fd_);
+    sender_ = std::make_unique<SocketCanSender>(interface_, enable_fd_, enable_loopback_);
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(
       this->get_logger(), "Error opening CAN sender: %s - %s",

@@ -14,7 +14,6 @@
     <arg name="interface" value="$(var interface)" />
     <arg name="interval_sec" value="$(var receiver_interval_sec)" />
     <arg name="enable_can_fd" value="$(var enable_can_fd)" />
-    <arg name="enable_frame_loopback" value="$(var enable_frame_loopback)" />
     <arg name="from_can_bus_topic" value="$(var from_can_bus_topic)" />
     <arg name="filters" value="$(var filters)" />
     <arg name="use_bus_time" value="$(var use_bus_time)" />
@@ -24,6 +23,7 @@
     <arg name="interface" value="$(var interface)" />
     <arg name="timeout_sec" value="$(var sender_timeout_sec)" />
     <arg name="enable_can_fd" value="$(var enable_can_fd)" />
+    <arg name="enable_frame_loopback" value="$(var enable_frame_loopback)" />
     <arg name="to_can_bus_topic" value="$(var to_can_bus_topic)" />
   </include>
 
