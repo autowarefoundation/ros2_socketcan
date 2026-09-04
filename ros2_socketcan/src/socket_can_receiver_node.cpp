@@ -21,9 +21,12 @@
 #include <agnocast_cie_thread_configurator/cie_thread_configurator.hpp>
 #endif
 
+#include <pthread.h>
+
 #include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -31,6 +34,15 @@ namespace lc = rclcpp_lifecycle;
 using LNI = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface;
 using lifecycle_msgs::msg::State;
 using namespace std::chrono_literals;
+
+namespace
+{
+// Sets the kernel name of a thread. The kernel keeps at most 15 characters.
+void set_thread_name(std::thread & thread, const std::string & name)
+{
+  pthread_setname_np(thread.native_handle(), name.substr(0, 15).c_str());
+}
+}  // namespace
 
 namespace drivers
 {
@@ -87,6 +99,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
 #else
   receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
 #endif
+  set_thread_name(*receiver_thread_, "rx:" + interface_);
 
   return LNI::CallbackReturn::SUCCESS;
 }
