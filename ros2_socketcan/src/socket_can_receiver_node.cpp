@@ -17,6 +17,10 @@
 #include "ros2_socketcan/socket_can_receiver_node.hpp"
 #include "ros2_socketcan/socket_can_common.hpp"
 
+#ifdef USE_AGNOCAST_ENABLED
+#include <agnocast_cie_thread_configurator/cie_thread_configurator.hpp>
+#endif
+
 #include <chrono>
 #include <memory>
 #include <string>
@@ -75,7 +79,14 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
       this->create_publisher<ros2_socketcan_msgs::msg::FdFrame>("from_can_bus_fd", 500);
   }
 
+#ifdef USE_AGNOCAST_ENABLED
+  const std::string thread_name = "socket_can_receiver:" + interface_ + ":receiver_thread";
+  receiver_thread_ = std::make_unique<std::thread>(
+    agnocast_cie_thread_configurator::spawn_non_ros2_thread(
+    thread_name.c_str(), &SocketCanReceiverNode::receive, this));
+#else
   receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
+#endif
 
   return LNI::CallbackReturn::SUCCESS;
 }
