@@ -59,8 +59,10 @@ thrown.
 
 Both the receiver and the sender classes throw exceptions in the following cases:
 1. On construction if the specified interface is invalid or cannot be bound
-2. If the file descriptor is unavailable within the timeout period for sending
-3. Any other Unix error is raised during the sending process
+2. `SocketCanTimeout` if the file descriptor is not ready within the timeout period. With a zero
+   timeout, the same exception is thrown if the socket cannot transfer a frame at once
+3. `std::runtime_error` for any other error from `select()`, `read()` or `send()`. The message names
+   the call and holds the `errno` text
 
 Message-level error checking mechanisms a part of the CAN standard are outside the scope of this
 class.

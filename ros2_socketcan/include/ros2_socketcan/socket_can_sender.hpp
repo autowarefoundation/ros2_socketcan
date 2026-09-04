@@ -49,7 +49,7 @@ public:
   ///                    durations are treated the same as zero timeout
   /// \param[in] length The amount of data to send starting from the data pointer
   /// \throw std::domain_error If length is > 8
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   void send(
     const void * const data,
@@ -62,7 +62,7 @@ public:
   /// \param[in] id The id field for the CAN frame
   /// \param[in] length The amount of data to send starting from the data pointer
   /// \throw std::domain_error If length is > 8
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   void send(
     const void * const data,
@@ -74,7 +74,7 @@ public:
   /// \param[in] data The data to send
   /// \param[in] timeout Maximum duration to wait for file descriptor to be free for write. Negative
   ///                    durations are treated the same as zero timeout
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
   void send(
@@ -90,7 +90,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for file descriptor to be free for write. Negative
   ///                    durations are treated the same as zero timeout
   /// \param[in] id The id field for the CAN frame
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
   void send(
@@ -111,7 +111,7 @@ public:
   ///                    durations are treated the same as zero timeout
   /// \param[in] length The amount of data to send starting from the data pointer
   /// \throw std::domain_error If length is > 64
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   void send_fd(
     const void * const data,
@@ -124,7 +124,7 @@ public:
   /// \param[in] id The id field for the CAN frame
   /// \param[in] length The amount of data to send starting from the data pointer
   /// \throw std::domain_error If length is > 64
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   void send_fd(
     const void * const data,
@@ -136,7 +136,7 @@ public:
   /// \param[in] data The data to send
   /// \param[in] timeout Maximum duration to wait for file descriptor to be free for write. Negative
   ///                    durations are treated the same as zero timeout
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
   void send_fd(
@@ -152,7 +152,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for file descriptor to be free for write. Negative
   ///                    durations are treated the same as zero timeout
   /// \param[in] id The id field for the CAN frame
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if the socket is not ready
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
   void send_fd(

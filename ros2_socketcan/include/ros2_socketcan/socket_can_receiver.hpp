@@ -92,7 +92,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
   ///                    durations are treated the same as zero timeout
   /// \return The CanId for the received can_frame, with length appropriately populated
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if no frame is pending
   /// \throw std::runtime_error on other errors
   CanId receive(
     void * const data,
@@ -104,7 +104,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
   ///                    durations are treated the same as zero timeout
   /// \return The CanId for the received can_frame, with length appropriately populated
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if no frame is pending
   /// \throw std::runtime_error If received data would not fit into provided type
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>
@@ -127,7 +127,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
   ///                    durations are treated the same as zero timeout
   /// \return The CanId for the received canfd_frame, with length appropriately populated
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if no frame is pending
   /// \throw std::runtime_error on other errors
   CanId receive_fd(
     void * const data,
@@ -139,7 +139,7 @@ public:
   /// \param[in] timeout Maximum duration to wait for data on the file descriptor. Negative
   ///                    durations are treated the same as zero timeout
   /// \return The CanId for the received canfd_frame, with length appropriately populated
-  /// \throw SocketCanTimeout On timeout
+  /// \throw SocketCanTimeout On timeout, or with a zero timeout if no frame is pending
   /// \throw std::runtime_error If received data would not fit into provided type
   /// \throw std::runtime_error on other errors
   template<typename T, typename = std::enable_if_t<!std::is_pointer<T>::value>>

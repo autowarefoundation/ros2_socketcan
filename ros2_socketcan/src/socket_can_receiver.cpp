@@ -25,6 +25,7 @@
 #include <linux/can.h>
 #include <linux/sockios.h>
 
+#include <cerrno>
 #include <cstring>
 #include <string>
 #include <sstream>
@@ -117,7 +118,11 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
     auto c_timeout = to_timeval(timeout);
     auto read_set = single_set(m_file_descriptor);
     // Wait
-    if (0 == select(m_file_descriptor + 1, &read_set, NULL, NULL, &c_timeout)) {
+    const auto ready = select(m_file_descriptor + 1, &read_set, NULL, NULL, &c_timeout);
+    if (0 > ready) {
+      throw std::runtime_error{"select: " + std::string{strerror(errno)}};
+    }
+    if (0 == ready) {
       throw SocketCanTimeout{"CAN Receive Timeout"};
     }
     //lint --e{9130, 1924, 9123, 9125, 1924, 9126} NOLINT
@@ -140,7 +145,10 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
   const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
   // Checks
   if (nbytes < 0) {
-    throw std::runtime_error{strerror(errno)};
+    if (EAGAIN == errno || EWOULDBLOCK == errno) {
+      throw SocketCanTimeout{"CAN Receive Timeout"};
+    }
+    throw std::runtime_error{"read: " + std::string{strerror(errno)}};
   }
   if (static_cast<std::size_t>(nbytes) < sizeof(frame)) {
     throw std::runtime_error{"read: incomplete CAN frame"};
@@ -174,7 +182,10 @@ CanId SocketCanReceiver::receive_fd(void * const data, const std::chrono::nanose
 
   // Checks
   if (nbytes < 0) {
-    throw std::runtime_error{strerror(errno)};
+    if (EAGAIN == errno || EWOULDBLOCK == errno) {
+      throw SocketCanTimeout{"CAN Receive Timeout"};
+    }
+    throw std::runtime_error{"read: " + std::string{strerror(errno)}};
   }
 
   if (static_cast<std::size_t>(nbytes) < sizeof(frame.can_id) + sizeof(frame.len)) {
