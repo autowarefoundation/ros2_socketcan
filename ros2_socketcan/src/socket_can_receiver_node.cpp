@@ -115,7 +115,7 @@ LNI::CallbackReturn SocketCanReceiverNode::on_configure(const lc::State & state)
   const std::string thread_name = "socket_can_receiver:" + interface_ + ":receiver_thread";
   receiver_thread_ = std::make_unique<std::thread>(
     agnocast_cie_thread_configurator::spawn_non_ros2_thread(
-    thread_name.c_str(), &SocketCanReceiverNode::receive, this));
+      thread_name.c_str(), &SocketCanReceiverNode::receive, this));
 #else
   receiver_thread_ = std::make_unique<std::thread>(&SocketCanReceiverNode::receive, this);
 #endif
