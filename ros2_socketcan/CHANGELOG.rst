@@ -2,6 +2,21 @@
 Changelog for package ros2_socketcan
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.4.0 (2026-09-07)
+------------------
+- Added ``warn_on_receive_timeout`` to control timeout warnings without suppressing other receive errors (`#59 <https://github.com/autowarefoundation/ros2_socketcan/issues/59>`_).
+- Stopped and joined the receiver thread on node destruction, lifecycle cleanup, and shutdown (`#75 <https://github.com/autowarefoundation/ros2_socketcan/issues/75>`_).
+- Added ``rx:<interface>`` receiver thread names and five tests for destruction and reconfiguration (`#89 <https://github.com/autowarefoundation/ros2_socketcan/issues/89>`_).
+- Added optional Agnocast support with ``CallbackIsolatedAgnocastExecutor`` (`#72 <https://github.com/autowarefoundation/ros2_socketcan/issues/72>`_).
+- Added the sender-only ``enable_frame_loopback`` parameter, disabled by default (`#66 <https://github.com/autowarefoundation/ros2_socketcan/issues/66>`_).
+- Added an ``enable_loopback`` argument before ``default_id`` in the ``SocketCanSender`` constructor (`#66 <https://github.com/autowarefoundation/ros2_socketcan/issues/66>`_).
+- Added the ``filters`` argument to the XML bridge launch file (`#63 <https://github.com/autowarefoundation/ros2_socketcan/issues/63>`_).
+- Enabled CAN FD topic remapping through the launch files (`#52 <https://github.com/autowarefoundation/ros2_socketcan/issues/52>`_).
+- Added support for variable-length CAN FD frames (`#50 <https://github.com/autowarefoundation/ros2_socketcan/issues/50>`_).
+- Fixed rejection of extended CAN IDs with the extended-frame flag set (`#40 <https://github.com/autowarefoundation/ros2_socketcan/issues/40>`_).
+- Renamed the design document to ``README.md`` (`#37 <https://github.com/autowarefoundation/ros2_socketcan/issues/37>`_).
+- Contributors: Albers Franz, ChinYikMing, Ismet Atabay, Joshua Whitley, Kevin Hallenbeck, M. Fatih Cırıt, Mete Fatih Cırıt, Ryohsuke Mitsudome, Tetsuhiro Kawaguchi, Tony Baltovski
+
 1.3.0 (2024-07-16)
 ------------------
 * Jazzy release

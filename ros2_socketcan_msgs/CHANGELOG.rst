@@ -2,6 +2,10 @@
 Changelog for package ros2_socketcan_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.4.0 (2026-09-07)
+------------------
+- Updated the version to match ``ros2_socketcan``. Message definitions are unchanged.
+
 1.3.0 (2024-07-16)
 ------------------
 * Jazzy release
