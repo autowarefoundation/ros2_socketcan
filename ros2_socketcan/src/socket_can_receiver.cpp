@@ -31,6 +31,8 @@
 #include <vector>
 #include <cstdio>
 
+#define ERR_AGAIN_RETRY_CNT 10
+
 namespace drivers
 {
 namespace socketcan
@@ -115,14 +117,21 @@ void SocketCanReceiver::wait(const std::chrono::nanoseconds timeout) const
 {
   if (decltype(timeout)::zero() < timeout) {
     auto c_timeout = to_timeval(timeout);
+    int retval;
     auto read_set = single_set(m_file_descriptor);
-    // Wait
-    if (0 == select(m_file_descriptor + 1, &read_set, NULL, NULL, &c_timeout)) {
+    retval = select(m_file_descriptor + 1, &read_set, NULL, NULL, &c_timeout);
+    // Check return value of the select function
+    if (0 == retval) {
       throw SocketCanTimeout{"CAN Receive Timeout"};
-    }
-    //lint --e{9130, 1924, 9123, 9125, 1924, 9126} NOLINT
-    if (!FD_ISSET(m_file_descriptor, &read_set)) {
-      throw SocketCanTimeout{"CAN Receive timeout"};
+    } else if (-1 == retval) {
+      // Output errno
+      throw std::runtime_error{strerror(errno)};
+    } else {
+      // Check file descriptor
+      //lint --e{9130, 1924, 9123, 9125, 1924, 9126} NOLINT
+      if (0 == FD_ISSET(m_file_descriptor, &read_set)) {
+        throw SocketCanTimeout{"File descriptor not set"};
+      }
     }
   }
 }
@@ -137,16 +146,32 @@ CanId SocketCanReceiver::receive(void * const data, const std::chrono::nanosecon
   wait(timeout);
   // Read
   struct can_frame frame;
-  const auto nbytes = read(m_file_descriptor, &frame, sizeof(frame));
+
+  int number = 0;
+  ssize_t nbytes = 0;
+
+  char buf[sizeof(frame)];
+  char * p = &buf[0];
+  ulong bytes_read = 0;
+  while (bytes_read < sizeof(frame) && -1 != nbytes) {
+    for (int i = 0; i < ERR_AGAIN_RETRY_CNT; i++) {
+      nbytes = read(m_file_descriptor, p + bytes_read, sizeof(frame) - bytes_read);
+      if (-1 == nbytes) {
+        number = errno;
+        if (!(EAGAIN == (number) || EWOULDBLOCK == (number) || EINTR == (number))) {
+          break;
+        }
+      } else {
+        bytes_read += nbytes;
+        break;
+      }
+    }
+  }
   // Checks
-  if (nbytes < 0) {
+  if (-1 == nbytes) {
     throw std::runtime_error{strerror(errno)};
-  }
-  if (static_cast<std::size_t>(nbytes) < sizeof(frame)) {
-    throw std::runtime_error{"read: incomplete CAN frame"};
-  }
-  if (static_cast<std::size_t>(nbytes) != sizeof(frame)) {
-    throw std::logic_error{"Message was wrong size"};
+  } else {
+    (void)std::memcpy(&frame, &buf[0], sizeof(frame));
   }
   // Write
   const auto data_length = static_cast<CanId::LengthT>(frame.can_dlc);
