@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include <linux/can.h>
 
+#include <cerrno>
 #include <cstring>
 #include <chrono>
 #include <stdexcept>
@@ -108,7 +109,11 @@ void SocketCanSender::wait(const std::chrono::nanoseconds timeout) const
     auto c_timeout = to_timeval(timeout);
     auto write_set = single_set(m_file_descriptor);
     // Wait
-    if (0 == select(m_file_descriptor + 1, NULL, &write_set, NULL, &c_timeout)) {
+    const auto ready = select(m_file_descriptor + 1, NULL, &write_set, NULL, &c_timeout);
+    if (0 > ready) {
+      throw std::runtime_error{"select: " + std::string{strerror(errno)}};
+    }
+    if (0 == ready) {
       throw SocketCanTimeout{"CAN Send Timeout"};
     }
     //lint --e{9130, 9123, 9125, 1924, 9126} NOLINT
@@ -141,7 +146,13 @@ void SocketCanSender::send_impl(
   (void)std::memcpy(static_cast<void *>(&data_frame.data[0U]), data, length);
   const auto bytes_sent = ::send(m_file_descriptor, &data_frame, sizeof(data_frame), flags);
   if (0 > bytes_sent) {
-    throw std::runtime_error{strerror(errno)};
+    if (EAGAIN == errno || EWOULDBLOCK == errno) {
+      throw SocketCanTimeout{"CAN Send Timeout"};
+    }
+    throw std::runtime_error{"send: " + std::string{strerror(errno)}};
+  }
+  if (static_cast<std::size_t>(bytes_sent) != sizeof(data_frame)) {
+    throw std::runtime_error{"send: incomplete CAN frame"};
   }
 }
 
@@ -168,7 +179,13 @@ void SocketCanSender::send_fd_impl(
   (void)std::memcpy(static_cast<void *>(&data_frame.data[0U]), data, length);
   const auto bytes_sent = ::send(m_file_descriptor, &data_frame, sizeof(data_frame), flags);
   if (0 > bytes_sent) {
-    throw std::runtime_error{strerror(errno)};
+    if (EAGAIN == errno || EWOULDBLOCK == errno) {
+      throw SocketCanTimeout{"CAN Send Timeout"};
+    }
+    throw std::runtime_error{"send: " + std::string{strerror(errno)}};
+  }
+  if (static_cast<std::size_t>(bytes_sent) != sizeof(data_frame)) {
+    throw std::runtime_error{"send: incomplete CAN FD frame"};
   }
 }
 
